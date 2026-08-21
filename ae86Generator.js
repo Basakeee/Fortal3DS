@@ -15,7 +15,7 @@ export const AE86_TRUENO_DEFAULTS = {
   cabinFrontInset: 5, // long hood — RWD coupe proportions
   cabinRearInset: 2, // short trunk overhang — hatchback glass runs close to the tail
   cabinSideInset: 1,
-  wheelWidth: 1,
+  wheelWidth: 2,
   voxelSize: 0.28, // 15 voxels -> ~4.2m, close to the real AE86's 4.19m length
   pandaWhite: BODY_PAINTS[4],
   pandaBlack: BODY_PAINTS[3],

@@ -8,22 +8,22 @@ export function pushVoxel(voxels, x, y, z, colorHex) {
   voxels.push({ x, y, z, colorHex });
 }
 
-// Voxel disc in the Y-Z plane (wheel axle runs along X), offset outward from the
-// body side by `wheelWidth`. Shared across every car preset since wheels don't
-// vary by car identity the way bodywork does.
+// Voxel disc in the Y-Z plane (wheel axle runs along X). Its thickness (wheelWidth)
+// straddles the body's edge column — half embedded in the fender, half poking out
+// past it — the way a real tire bulges past the bodywork rather than either
+// floating outside it (a visible gap) or sitting fully flush/hidden inside it.
 export function pushWheel(voxels, { side, width, wheelZ, wheelRadius, wheelWidth, tireColor, rimColor }) {
   const rimRadius = wheelRadius * 0.4;
+  const edgeX = side === -1 ? 0 : width;
+  const inboardColumns = Math.floor(wheelWidth / 2);
   for (let dz = -wheelRadius; dz <= wheelRadius; dz++) {
     for (let dy = -wheelRadius; dy <= wheelRadius; dy++) {
       if (dz * dz + dy * dy > wheelRadius * wheelRadius) continue;
       const color = dz * dz + dy * dy <= rimRadius * rimRadius ? rimColor : tireColor;
       const y = wheelRadius + dy;
       const z = wheelZ + dz;
-      // Flush with the body's outer edge column (not offset past it) — an outward
-      // offset left an empty gap column between the body and the wheel, which read
-      // as the wheels floating apart from the body rather than tucked under it.
       for (let w = 0; w < wheelWidth; w++) {
-        const x = side === -1 ? w : width - 1 - w;
+        const x = edgeX - inboardColumns + w;
         pushVoxel(voxels, x, y, z, color);
       }
     }

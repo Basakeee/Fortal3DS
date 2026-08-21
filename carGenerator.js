@@ -14,7 +14,7 @@ export const SEDAN_90S_DEFAULTS = {
   cabinFrontInset: 4,
   cabinRearInset: 4,
   cabinSideInset: 1,
-  wheelWidth: 1,
+  wheelWidth: 2,
   // Real-world meters per voxel. A 16-voxel length reads as a compact 90s sedan
   // (~4.5m) at this size — deliberately explicit rather than left to guesswork,
   // since Deepspace already burned time on VFX that had no real-world unit
