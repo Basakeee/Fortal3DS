@@ -19,8 +19,11 @@ export function pushWheel(voxels, { side, width, wheelZ, wheelRadius, wheelWidth
       const color = dz * dz + dy * dy <= rimRadius * rimRadius ? rimColor : tireColor;
       const y = wheelRadius + dy;
       const z = wheelZ + dz;
+      // Flush with the body's outer edge column (not offset past it) — an outward
+      // offset left an empty gap column between the body and the wheel, which read
+      // as the wheels floating apart from the body rather than tucked under it.
       for (let w = 0; w < wheelWidth; w++) {
-        const x = side === -1 ? -1 - w : width + w;
+        const x = side === -1 ? w : width - 1 - w;
         pushVoxel(voxels, x, y, z, color);
       }
     }
