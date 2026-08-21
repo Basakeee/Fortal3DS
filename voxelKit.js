@@ -8,11 +8,20 @@ export function pushVoxel(voxels, x, y, z, colorHex) {
   voxels.push({ x, y, z, colorHex });
 }
 
+function cellKey(x, y, z) {
+  return `${x},${y},${z}`;
+}
+
+export function makeOccupancy() {
+  return new Set();
+}
+
 // Voxel disc in the Y-Z plane (wheel axle runs along X). Its thickness (wheelWidth)
 // straddles the body's edge column — half embedded in the fender, half poking out
 // past it — the way a real tire bulges past the bodywork rather than either
 // floating outside it (a visible gap) or sitting fully flush/hidden inside it.
-export function pushWheel(voxels, { side, width, wheelZ, wheelRadius, wheelWidth, tireColor, rimColor }) {
+// `occupied` records every cell the wheel fills, so pushRockerFill can skip them.
+export function pushWheel(voxels, occupied, { side, width, wheelZ, wheelRadius, wheelWidth, tireColor, rimColor }) {
   const rimRadius = wheelRadius * 0.4;
   const edgeX = side === -1 ? 0 : width;
   const inboardColumns = Math.floor(wheelWidth / 2);
@@ -24,6 +33,23 @@ export function pushWheel(voxels, { side, width, wheelZ, wheelRadius, wheelWidth
       const z = wheelZ + dz;
       for (let w = 0; w < wheelWidth; w++) {
         const x = edgeX - inboardColumns + w;
+        occupied.add(cellKey(x, y, z));
+        pushVoxel(voxels, x, y, z, color);
+      }
+    }
+  }
+}
+
+// Fills the rocker/sill panel between the wheels (bounded by z/y range, full body
+// width) so the underside reads as one continuous panel with wheel-arch cutouts —
+// without this, the space between the wheels is empty and the wheels read as
+// separate discs "floating" apart from each other and from the body above.
+// Skips any cell a wheel already occupies to avoid two coincident, z-fighting cubes.
+export function pushRockerFill(voxels, occupied, { width, minZ, maxZ, minY, maxY, color }) {
+  for (let z = minZ; z < maxZ; z++) {
+    for (let x = 0; x < width; x++) {
+      for (let y = minY; y < maxY; y++) {
+        if (occupied.has(cellKey(x, y, z))) continue;
         pushVoxel(voxels, x, y, z, color);
       }
     }

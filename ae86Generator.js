@@ -1,5 +1,5 @@
 import { BODY_PAINTS, GLASS, CHROME, TIRE_RIM, LIGHTS } from "./palette.js";
-import { pushVoxel, pushWheel, voxelsToMesh } from "./voxelKit.js";
+import { pushVoxel, pushWheel, pushRockerFill, makeOccupancy, voxelsToMesh } from "./voxelKit.js";
 
 // Toyota Sprinter Trueno AE86 — specific real car, so this is its own layout
 // rather than a parameterized SEDAN_90S_DEFAULTS variant: shorter overhangs,
@@ -97,11 +97,12 @@ function buildVoxelList(paramsOverride) {
     }
   }
 
+  const occupied = makeOccupancy();
   const frontWheelZ = p.wheelRadius + 1;
   const rearWheelZ = p.length - 1 - p.wheelRadius - 1;
   for (const wheelZ of [frontWheelZ, rearWheelZ]) {
     for (const side of [-1, 1]) {
-      pushWheel(voxels, {
+      pushWheel(voxels, occupied, {
         side,
         width: p.width,
         wheelZ,
@@ -112,6 +113,17 @@ function buildVoxelList(paramsOverride) {
       });
     }
   }
+
+  // Rocker/sill panel spanning the wheelbase — without it the underside between
+  // the two wheels is empty and they read as separate discs floating apart.
+  pushRockerFill(voxels, occupied, {
+    width: p.width,
+    minZ: frontWheelZ,
+    maxZ: rearWheelZ + 1,
+    minY: p.wheelRadius,
+    maxY: bodyBaseY,
+    color: p.pandaBlack,
+  });
 
   return voxels;
 }
