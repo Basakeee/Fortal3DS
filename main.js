@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { GLTFExporter } from "three/addons/exporters/GLTFExporter.js";
+import { generateCar90sMesh } from "./carGenerator.js";
 
 const log = (msg) => (document.getElementById("log").textContent = msg);
 
@@ -8,28 +9,29 @@ const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x222222);
 
 const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 100);
-camera.position.set(2, 1.5, 2);
 
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild(renderer.domElement);
-
-new OrbitControls(camera, renderer.domElement);
 
 scene.add(new THREE.AmbientLight(0xffffff, 0.6));
 const sun = new THREE.DirectionalLight(0xffffff, 1.2);
 sun.position.set(3, 4, 2);
 scene.add(sun);
 
-// 1x1x1 meter box — box UVs are built-in and clean, so this run isolates
-// the export/import pipeline from any geometry-generation technique.
-const geometry = new THREE.BoxGeometry(1, 1, 1);
-const material = new THREE.MeshStandardMaterial({ color: 0x4a90d9, roughness: 0.6, metalness: 0.1 });
-const mesh = new THREE.Mesh(geometry, material);
-mesh.name = "PocCrate_1m";
+const mesh = generateCar90sMesh();
 scene.add(mesh);
 
-const grid = new THREE.GridHelper(5, 5);
+// Frame the car regardless of voxelSize/length changes, instead of a hardcoded camera spot.
+mesh.geometry.computeBoundingSphere();
+const { center, radius } = mesh.geometry.boundingSphere;
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.target.copy(center);
+camera.position.set(center.x + radius * 1.6, center.y + radius * 1.2, center.z + radius * 1.6);
+controls.update();
+
+const grid = new THREE.GridHelper(radius * 6, 20);
+grid.position.y = 0;
 scene.add(grid);
 
 function animate() {
@@ -53,10 +55,10 @@ document.getElementById("export").addEventListener("click", () => {
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = "poc_crate.glb";
+      a.download = "car_90s_voxel.glb";
       a.click();
       URL.revokeObjectURL(url);
-      log("Exported poc_crate.glb — check scale/normals/material after importing into Unity.");
+      log("Exported car_90s_voxel.glb — check scale/vertex colors after importing into Unity (needs a vertex-color-capable shader, e.g. URP/Lit).");
     },
     (error) => log("Export failed: " + error),
     { binary: true }
