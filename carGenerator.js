@@ -1,12 +1,11 @@
-import * as THREE from "three";
-import { mergeGeometries } from "three/addons/utils/BufferGeometryUtils.js";
 import { BODY_PAINTS, GLASS, CHROME, TIRE_RIM, LIGHTS } from "./palette.js";
+import { pushVoxel, pushWheel, voxelsToMesh } from "./voxelKit.js";
 
 // Grid axes: x = width (left/right), y = height (up), z = length (front at z=0).
 // Boxy proportions (solid slab body, upright greenhouse, thin chrome trim) are
-// what read as "90s sedan" at low voxel resolution — a modern curved car needs a
-// completely different silhouette strategy.
-export const CAR_90S_DEFAULTS = {
+// what read as "generic 90s sedan" at low voxel resolution — a specific real car
+// (see ae86Generator.js) needs its own silhouette, not just different colors.
+export const SEDAN_90S_DEFAULTS = {
   length: 16,
   width: 6,
   wheelRadius: 2,
@@ -30,18 +29,13 @@ export const CAR_90S_DEFAULTS = {
   taillightColor: LIGHTS[3],
 };
 
-function pushVoxel(voxels, x, y, z, colorHex) {
-  voxels.push({ x, y, z, colorHex });
-}
-
 function buildVoxelList(params) {
-  const p = { ...CAR_90S_DEFAULTS, ...params };
+  const p = { ...SEDAN_90S_DEFAULTS, ...params };
   const voxels = [];
 
   const wheelRows = 2 * p.wheelRadius + 1;
   const bodyBaseY = wheelRows;
   const cabinBaseY = bodyBaseY + p.bodyHeight;
-  const totalHeight = cabinBaseY + p.cabinHeight;
 
   // Lower body: solid slab, deliberately un-tapered (boxy 90s look).
   for (let z = 0; z < p.length; z++) {
@@ -86,59 +80,34 @@ function buildVoxelList(params) {
   pushVoxel(voxels, 0, lightY, p.length - 1, p.taillightColor);
   pushVoxel(voxels, p.width - 1, lightY, p.length - 1, p.taillightColor);
 
-  // Wheels: voxel discs in the Y-Z plane, offset outward from the body sides.
+  // Wheels
   const frontWheelZ = p.wheelRadius + 1;
   const rearWheelZ = p.length - 1 - p.wheelRadius - 1;
-  const rimRadius = p.wheelRadius * 0.4;
-
   for (const wheelZ of [frontWheelZ, rearWheelZ]) {
     for (const side of [-1, 1]) {
-      for (let dz = -p.wheelRadius; dz <= p.wheelRadius; dz++) {
-        for (let dy = -p.wheelRadius; dy <= p.wheelRadius; dy++) {
-          if (dz * dz + dy * dy > p.wheelRadius * p.wheelRadius) continue;
-          const color = dz * dz + dy * dy <= rimRadius * rimRadius ? p.rimColor : p.tireColor;
-          const y = p.wheelRadius + dy;
-          const z = wheelZ + dz;
-          for (let w = 0; w < p.wheelWidth; w++) {
-            const x = side === -1 ? -1 - w : p.width + w;
-            pushVoxel(voxels, x, y, z, color);
-          }
-        }
-      }
+      pushWheel(voxels, {
+        side,
+        width: p.width,
+        wheelZ,
+        wheelRadius: p.wheelRadius,
+        wheelWidth: p.wheelWidth,
+        tireColor: p.tireColor,
+        rimColor: p.rimColor,
+      });
     }
   }
 
-  return { voxels, totalHeight };
+  return voxels;
 }
 
-export function generateCar90sGeometry(paramsOverride = {}) {
-  const p = { ...CAR_90S_DEFAULTS, ...paramsOverride };
-  const { voxels } = buildVoxelList(p);
-
-  const geometries = voxels.map(({ x, y, z, colorHex }) => {
-    const geo = new THREE.BoxGeometry(1, 1, 1);
-    geo.translate(x + 0.5, y + 0.5, z + 0.5);
-    const color = new THREE.Color(colorHex);
-    const colors = new Float32Array(geo.attributes.position.count * 3);
-    for (let i = 0; i < geo.attributes.position.count; i++) {
-      colors[i * 3] = color.r;
-      colors[i * 3 + 1] = color.g;
-      colors[i * 3 + 2] = color.b;
-    }
-    geo.setAttribute("color", new THREE.BufferAttribute(colors, 3));
-    return geo;
-  });
-
-  const merged = mergeGeometries(geometries, false);
-  merged.scale(p.voxelSize, p.voxelSize, p.voxelSize);
-  geometries.forEach((g) => g.dispose());
-  return merged;
+export function generateSedan90sGeometry(paramsOverride = {}) {
+  const p = { ...SEDAN_90S_DEFAULTS, ...paramsOverride };
+  const voxels = buildVoxelList(p);
+  return voxels; // callers that need raw voxels can post-process before meshing
 }
 
-export function generateCar90sMesh(paramsOverride = {}) {
-  const geometry = generateCar90sGeometry(paramsOverride);
-  const material = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.5, metalness: 0.15 });
-  const mesh = new THREE.Mesh(geometry, material);
-  mesh.name = "Car_90s_Voxel";
-  return mesh;
+export function generateSedan90sMesh(paramsOverride = {}) {
+  const p = { ...SEDAN_90S_DEFAULTS, ...paramsOverride };
+  const voxels = buildVoxelList(p);
+  return voxelsToMesh(voxels, p.voxelSize, "Sedan_90s_Voxel");
 }

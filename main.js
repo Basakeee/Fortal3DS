@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { GLTFExporter } from "three/addons/exporters/GLTFExporter.js";
-import { generateCar90sMesh } from "./carGenerator.js";
+import { generateAE86TruenoMesh } from "./ae86Generator.js";
 
 const log = (msg) => (document.getElementById("log").textContent = msg);
 
@@ -19,7 +19,7 @@ const sun = new THREE.DirectionalLight(0xffffff, 1.2);
 sun.position.set(3, 4, 2);
 scene.add(sun);
 
-const mesh = generateCar90sMesh();
+const mesh = generateAE86TruenoMesh();
 scene.add(mesh);
 
 // Frame the car regardless of voxelSize/length changes, instead of a hardcoded camera spot.
@@ -55,10 +55,10 @@ document.getElementById("export").addEventListener("click", () => {
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = "car_90s_voxel.glb";
+      a.download = "ae86_trueno_voxel.glb";
       a.click();
       URL.revokeObjectURL(url);
-      log("Exported car_90s_voxel.glb — check scale/vertex colors after importing into Unity (needs a vertex-color-capable shader, e.g. URP/Lit).");
+      log("Exported ae86_trueno_voxel.glb — check scale/vertex colors after importing into Unity (needs a vertex-color-capable shader, e.g. URP/Lit).");
     },
     (error) => log("Export failed: " + error),
     { binary: true }
