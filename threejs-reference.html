@@ -1,0 +1,846 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Three.js Field Notes</title>
+
+<style>
+  :root {
+    --bg: #f5f6f8;
+    --surface: #ffffff;
+    --surface-sunken: #eef0f3;
+    --border: #dde1e7;
+    --text: #1a1d22;
+    --text-soft: #5b6470;
+    --text-faint: #8991a0;
+    --accent: #a3701c;
+    --accent-bg: #fbf0dd;
+    --accent-border: #e6c383;
+    --code-bg: #1b1f26;
+    --code-text: #dfe3e8;
+    --code-key: #e0a44c;
+    --code-str: #8fbf7f;
+    --code-com: #77808f;
+    --danger: #b3432b;
+    --danger-bg: #fbe9e4;
+    --shadow: 0 1px 2px rgba(20, 23, 28, 0.04), 0 8px 24px rgba(20, 23, 28, 0.06);
+    color-scheme: light;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #14171c;
+      --surface: #1b1f26;
+      --surface-sunken: #171a20;
+      --border: #2b303a;
+      --text: #e9ebee;
+      --text-soft: #9aa3b0;
+      --text-faint: #6b7280;
+      --accent: #e0a44c;
+      --accent-bg: #2a2318;
+      --accent-border: #4a3a20;
+      --code-bg: #101318;
+      --code-text: #dfe3e8;
+      --code-key: #e6b566;
+      --code-str: #9bcf8a;
+      --code-com: #6b7482;
+      --danger: #e0725a;
+      --danger-bg: #2c1a17;
+      --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 24px rgba(0, 0, 0, 0.4);
+      color-scheme: dark;
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --bg: #14171c;
+    --surface: #1b1f26;
+    --surface-sunken: #171a20;
+    --border: #2b303a;
+    --text: #e9ebee;
+    --text-soft: #9aa3b0;
+    --text-faint: #6b7280;
+    --accent: #e0a44c;
+    --accent-bg: #2a2318;
+    --accent-border: #4a3a20;
+    --code-bg: #101318;
+    --code-text: #dfe3e8;
+    --code-key: #e6b566;
+    --code-str: #9bcf8a;
+    --code-com: #6b7482;
+    --danger: #e0725a;
+    --danger-bg: #2c1a17;
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 24px rgba(0, 0, 0, 0.4);
+    color-scheme: dark;
+  }
+
+  * { box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: "IBM Plex Sans", "Noto Sans Thai", -apple-system, sans-serif;
+    font-size: 15.5px;
+    line-height: 1.65;
+  }
+
+  ::selection { background: var(--accent-border); color: var(--text); }
+
+  h1, h2, h3, h4 {
+    font-family: "Barlow Condensed", "Noto Sans Thai", sans-serif;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    text-wrap: balance;
+    color: var(--text);
+    margin: 0;
+  }
+
+  code, pre, .mono {
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+  }
+
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  a:focus-visible, button:focus-visible, summary:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+
+  /* ---------- Shell layout ---------- */
+
+  .shell {
+    display: grid;
+    grid-template-columns: 260px minmax(0, 1fr);
+    gap: 0;
+    max-width: 1180px;
+    margin: 0 auto;
+  }
+
+  @media (max-width: 880px) {
+    .shell { grid-template-columns: 1fr; }
+    .toc { position: static; height: auto; border-right: none; border-bottom: 1px solid var(--border); }
+  }
+
+  .toc {
+    position: sticky;
+    top: 0;
+    align-self: start;
+    height: 100vh;
+    overflow-y: auto;
+    padding: 28px 20px 40px;
+    border-right: 1px solid var(--border);
+    background: var(--surface);
+  }
+
+  .toc-title {
+    font-size: 0.68rem;
+    letter-spacing: 0.12em;
+    color: var(--text-faint);
+    text-transform: uppercase;
+    font-family: "IBM Plex Mono", monospace;
+    margin-bottom: 14px;
+  }
+
+  .toc-group { margin-bottom: 22px; }
+
+  .toc-group-label {
+    font-size: 0.7rem;
+    color: var(--accent);
+    font-family: "IBM Plex Mono", monospace;
+    letter-spacing: 0.06em;
+    margin-bottom: 6px;
+    display: block;
+  }
+
+  .toc a {
+    display: block;
+    color: var(--text-soft);
+    font-size: 0.86rem;
+    padding: 4px 0 4px 12px;
+    border-left: 2px solid transparent;
+  }
+
+  .toc a:hover { color: var(--text); text-decoration: none; border-left-color: var(--accent-border); }
+
+  main { padding: 40px 48px 100px; min-width: 0; }
+
+  @media (max-width: 640px) { main { padding: 28px 20px 80px; } }
+
+  header.page-head {
+    padding-bottom: 32px;
+    margin-bottom: 40px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .eyebrow {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 10px;
+  }
+
+  h1.title {
+    font-size: clamp(2.4rem, 5vw, 3.4rem);
+    line-height: 0.98;
+    margin-bottom: 14px;
+  }
+
+  .dek {
+    font-size: 1.05rem;
+    color: var(--text-soft);
+    max-width: 62ch;
+    font-family: "IBM Plex Sans", "Noto Sans Thai", sans-serif;
+    text-transform: none;
+    letter-spacing: normal;
+  }
+
+  .stat-strip {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 24px;
+    margin-top: 24px;
+  }
+
+  .stat { display: flex; flex-direction: column; gap: 2px; }
+  .stat b { font-family: "Barlow Condensed", sans-serif; font-size: 1.6rem; }
+  .stat span { font-size: 0.72rem; color: var(--text-faint); text-transform: uppercase; letter-spacing: 0.06em; }
+
+  /* ---------- Sections ---------- */
+
+  section.topic { margin-bottom: 56px; scroll-margin-top: 24px; }
+
+  .topic-head {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    margin-bottom: 16px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid var(--border);
+  }
+
+  .topic-num {
+    font-family: "IBM Plex Mono", monospace;
+    color: var(--text-faint);
+    font-size: 0.85rem;
+  }
+
+  h2.topic-title { font-size: 1.7rem; }
+
+  h3.sub-title {
+    font-size: 1.15rem;
+    text-transform: none;
+    letter-spacing: normal;
+    margin: 28px 0 10px;
+    color: var(--text);
+  }
+
+  p { margin: 0 0 14px; max-width: 72ch; }
+  ul, ol { margin: 0 0 14px; padding-left: 22px; max-width: 70ch; }
+  li { margin-bottom: 6px; }
+
+  .callout {
+    background: var(--accent-bg);
+    border: 1px solid var(--accent-border);
+    border-radius: 8px;
+    padding: 14px 18px;
+    margin: 16px 0;
+    font-size: 0.92rem;
+  }
+
+  .callout .callout-label {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--accent);
+    display: block;
+    margin-bottom: 6px;
+  }
+
+  .callout p:last-child { margin-bottom: 0; }
+
+  .callout.danger {
+    background: var(--danger-bg);
+    border-color: color-mix(in srgb, var(--danger) 45%, var(--border));
+  }
+  .callout.danger .callout-label { color: var(--danger); }
+
+  pre {
+    background: var(--code-bg);
+    color: var(--code-text);
+    border-radius: 8px;
+    padding: 16px 18px;
+    overflow-x: auto;
+    font-size: 0.84rem;
+    line-height: 1.6;
+    margin: 12px 0 18px;
+    box-shadow: var(--shadow);
+  }
+
+  pre .k { color: var(--code-key); }
+  pre .s { color: var(--code-str); }
+  pre .c { color: var(--code-com); }
+
+  code.inline {
+    background: var(--surface-sunken);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 1px 6px;
+    font-size: 0.87em;
+  }
+
+  .table-wrap { overflow-x: auto; margin: 12px 0 20px; }
+
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    min-width: 480px;
+    font-size: 0.88rem;
+  }
+
+  th, td {
+    text-align: left;
+    padding: 8px 14px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+
+  th {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+    font-weight: 500;
+  }
+
+  td .mono { color: var(--text); }
+
+  .card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 14px;
+    margin: 16px 0 20px;
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px;
+  }
+
+  .card h4 { font-size: 1rem; text-transform: none; letter-spacing: normal; margin-bottom: 6px; }
+  .card p { font-size: 0.87rem; color: var(--text-soft); margin-bottom: 0; }
+
+  .gotcha-card {
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--danger);
+    background: var(--surface);
+    border-radius: 6px;
+    padding: 16px 20px;
+    margin-bottom: 16px;
+  }
+
+  .gotcha-card h4 {
+    font-family: "IBM Plex Mono", monospace;
+    text-transform: none;
+    letter-spacing: normal;
+    font-size: 0.95rem;
+    margin-bottom: 8px;
+    color: var(--danger);
+  }
+
+  footer.page-foot {
+    margin-top: 60px;
+    padding-top: 24px;
+    border-top: 1px solid var(--border);
+    color: var(--text-faint);
+    font-size: 0.82rem;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+  }
+</style>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&family=Noto+Sans+Thai:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<div class="shell">
+  <nav class="toc">
+    <div class="toc-title">// three.js field notes</div>
+
+    <div class="toc-group">
+      <span class="toc-group-label">01 — รากฐาน</span>
+      <a href="#core">Scene · Camera · Renderer</a>
+      <a href="#scenegraph">Object3D &amp; Scene Graph</a>
+    </div>
+
+    <div class="toc-group">
+      <span class="toc-group-label">02 — สร้างของ</span>
+      <a href="#geometry">Geometry</a>
+      <a href="#material">Material &amp; สี</a>
+      <a href="#lights">Lights</a>
+    </div>
+
+    <div class="toc-group">
+      <span class="toc-group-label">03 — มองและขยับ</span>
+      <a href="#camera-controls">Camera Framing &amp; Controls</a>
+      <a href="#math">Math &amp; Utility</a>
+      <a href="#animation">Animation Loop</a>
+    </div>
+
+    <div class="toc-group">
+      <span class="toc-group-label">04 — เข้า/ออก</span>
+      <a href="#loaders">Loaders &amp; Exporters</a>
+    </div>
+
+    <div class="toc-group">
+      <span class="toc-group-label">05 — บทเรียนจริง</span>
+      <a href="#gotchas">Gotchas จาก Fortal3DS</a>
+      <a href="#cheatsheet">Cheat Sheet</a>
+    </div>
+  </nav>
+
+  <main>
+    <header class="page-head">
+      <div class="eyebrow">Reference · r0.160.x API surface</div>
+      <h1 class="title">Three.js<br>Field Notes</h1>
+      <p class="dek">
+        สรุปแบบละเอียดของ Three.js เน้นส่วนที่ใช้จริงในงาน procedural voxel pipeline
+        (Fortal3DS) — ตั้งแต่ scene graph พื้นฐาน ไปจนถึง gotcha ที่เจอเองระหว่างทำ
+        เช่น <code class="inline">Object3D.add()</code> ที่ reparent แทนที่จะ copy
+        และ export format ที่ไม่รองรับ vertex color เท่ากัน
+      </p>
+      <div class="stat-strip">
+        <div class="stat"><b>11</b><span>หัวข้อหลัก</span></div>
+        <div class="stat"><b>0.160.0</b><span>เวอร์ชันที่ใช้ใน index.html</span></div>
+        <div class="stat"><b>3</b><span>บั๊กจริงที่เจอ + วิธีแก้</span></div>
+      </div>
+    </header>
+
+    <!-- 01 -->
+    <section class="topic" id="core">
+      <div class="topic-head">
+        <span class="topic-num">01</span>
+        <h2 class="topic-title">Scene · Camera · Renderer</h2>
+      </div>
+
+      <p>
+        Three.js render อะไรก็ตามผ่านสามชิ้นนี้เสมอ — ขาดชิ้นไหนไม่ขึ้นภาพ:
+      </p>
+
+      <div class="card-grid">
+        <div class="card">
+          <h4><code class="inline">THREE.Scene</code></h4>
+          <p>คอนเทนเนอร์รากของ scene graph ทั้งหมด — ทุก mesh/light/group ต้องถูก <code class="inline">.add()</code> เข้ามาที่นี่ (ตรงหรือผ่าน parent อื่น) ถึงจะถูก render</p>
+        </div>
+        <div class="card">
+          <h4><code class="inline">PerspectiveCamera</code></h4>
+          <p>รับ (fov, aspect, near, far) — fov หน่วยองศา, aspect ต้องอัปเดตทุกครั้งที่ resize ไม่งั้นภาพจะบิด</p>
+        </div>
+        <div class="card">
+          <h4><code class="inline">WebGLRenderer</code></h4>
+          <p>ตัวจริงที่คุยกับ GPU — <code class="inline">setSize()</code> ต้องเรียกตอน resize ด้วย ไม่ใช่แค่ camera.aspect</p>
+        </div>
+      </div>
+
+      <h3 class="sub-title">Render loop</h3>
+      <p>
+        ไม่มี "auto render" — ต้องเรียก <code class="inline">renderer.render(scene, camera)</code> เองทุกเฟรม
+        ผ่าน <code class="inline">requestAnimationFrame</code> วนไปเรื่อย ๆ:
+      </p>
+      <pre><span class="k">function</span> animate() {
+  requestAnimationFrame(animate);
+  <span class="c">// อัปเดต transform/animation ตรงนี้ ก่อน render เสมอ</span>
+  renderer.render(scene, camera);
+}
+animate();</pre>
+
+      <div class="callout">
+        <span class="callout-label">WHY</span>
+        <p>
+          Three.js ไม่ผูก render loop ให้อัตโนมัติเพราะบางแอปไม่ต้อง render ทุกเฟรม
+          (เช่น scene นิ่ง ๆ ไม่มี animation) — การแยกให้ผู้ใช้เรียกเองทำให้คุมเรื่อง
+          performance/battery ได้เอง ไม่เปลืองพลังงานเรียก render() ทิ้งเปล่า ๆ
+        </p>
+      </div>
+    </section>
+
+    <!-- 02 -->
+    <section class="topic" id="scenegraph">
+      <div class="topic-head">
+        <span class="topic-num">02</span>
+        <h2 class="topic-title">Object3D &amp; Scene Graph</h2>
+      </div>
+
+      <p>
+        <code class="inline">Mesh</code>, <code class="inline">Group</code>, <code class="inline">Light</code>,
+        <code class="inline">Camera</code> — ทุกอย่างสืบทอดจาก <code class="inline">Object3D</code> ตัวเดียวกัน
+        เลยมี <code class="inline">position</code> / <code class="inline">rotation</code> / <code class="inline">scale</code> เหมือนกันหมด
+        และต่อกันเป็นต้นไม้ได้ (parent-child) — transform ของ parent จะ "ไหล" ลงไปหา child เสมอ
+      </p>
+
+      <div class="callout danger">
+        <span class="callout-label">⚠ Gotcha ที่เจอจริงใน session นี้</span>
+        <p>
+          <code class="inline">object.add(child)</code> ไม่ใช่แค่ "เพิ่มเข้าไป" — มัน
+          <b>ย้าย</b> child ออกจาก parent เดิมก่อนเสมอ (reparent) ถ้า child มี parent อยู่แล้ว
+          ตอนทำ Fortal3DS ตัวเมื่อวาน โค้ดทำ <code class="inline">scene.add(boy)</code>
+          แล้วค่อย <code class="inline">figures.add(boy, girl)</code> ทีหลัง — boy/girl เลย
+          หลุดออกจาก scene ไปอยู่ใน <code class="inline">figures</code> ที่ไม่เคยถูก
+          <code class="inline">scene.add()</code> เลย จอเลยว่างเปล่า (เห็นแค่ grid)
+        </p>
+      </div>
+
+      <h3 class="sub-title">Local vs World transform</h3>
+      <p>
+        <code class="inline">.matrix</code> คือ transform เทียบกับ parent (local),
+        <code class="inline">.matrixWorld</code> คือ transform จริงในโลก (คูณสะสมจาก root ลงมา)
+        — ปกติ engine อัปเดตให้อัตโนมัติตอน render แต่ถ้าต้องอ่านตำแหน่งจริงก่อน render
+        รอบแรก (เช่นตอนคำนวณ <code class="inline">Box3</code>) ต้องเรียก
+        <code class="inline">object.updateWorldMatrix(true, false)</code> เอง — โชคดีที่
+        <code class="inline">Box3.setFromObject()</code> เรียกให้อยู่แล้วภายใน เลยไม่ต้องกังวลจุดนี้บ่อย
+      </p>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Method</th><th>ใช้ทำอะไร</th></tr></thead>
+          <tbody>
+            <tr><td><code class="inline mono">.add(...children)</code></td><td>ต่อลูก — reparent เสมอ (ดู gotcha ด้านบน)</td></tr>
+            <tr><td><code class="inline mono">.remove(child)</code></td><td>ถอดลูกออก ไม่ dispose geometry/material ให้ ต้องจัดการเอง</td></tr>
+            <tr><td><code class="inline mono">.traverse(fn)</code></td><td>วนทุก node ใต้ต้นไม้นี้ (รวมตัวเอง) — ใช้บ่อยตอนหา mesh ทั้งหมดใน group</td></tr>
+            <tr><td><code class="inline mono">.userData</code></td><td>ที่แปะข้อมูล custom (เช่น <code class="inline mono">car.userData.wheels</code>) — รอด survive ทั้ง add เข้า scene และ export</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 03 -->
+    <section class="topic" id="geometry">
+      <div class="topic-head">
+        <span class="topic-num">03</span>
+        <h2 class="topic-title">Geometry</h2>
+      </div>
+
+      <p>
+        ทุก geometry สมัยใหม่คือ <code class="inline">BufferGeometry</code> — ก้อนข้อมูลตัวเลขดิบ
+        (position/normal/uv/color) เก็บใน <code class="inline">BufferAttribute</code> ส่งตรงเข้า GPU
+        (Geometry แบบเก่าถูกถอดออกจาก core แล้ว)
+      </p>
+
+      <h3 class="sub-title">Attribute ที่ต้องรู้จัก</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Attribute</th><th>ความหมาย</th></tr></thead>
+          <tbody>
+            <tr><td><code class="inline mono">position</code></td><td>พิกัด vertex (x,y,z) — attribute เดียวที่ขาดไม่ได้</td></tr>
+            <tr><td><code class="inline mono">normal</code></td><td>ทิศตั้งฉากผิว ใช้คำนวณแสง — ไม่มีแล้ว lighting จะแบนหมด</td></tr>
+            <tr><td><code class="inline mono">uv</code></td><td>พิกัด texture mapping (0-1)</td></tr>
+            <tr><td><code class="inline mono">color</code></td><td>สีต่อ vertex — ต้องเปิด <code class="inline mono">material.vertexColors = true</code> ด้วยถึงจะเห็นผล (ตัว voxelKit.js ใช้ทางนี้ทั้งหมด)</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3 class="sub-title">Boilerplate ที่ใช้ซ้ำบ่อย</h3>
+      <pre>geo.computeBoundingBox();
+geo.computeBoundingSphere();   <span class="c">// ต้องเรียกเองก่อนอ่าน .boundingBox/.boundingSphere</span>
+geo.center();                   <span class="c">// เลื่อน geometry ให้ midpoint มาอยู่ที่ local (0,0,0)</span>
+geo.translate(x, y, z);
+geo.scale(sx, sy, sz);
+mergeGeometries([geoA, geoB]);  <span class="c">// จาก three/addons/utils/BufferGeometryUtils.js</span></pre>
+
+      <div class="callout">
+        <span class="callout-label">WHY .center() สำคัญตอนทำล้อ/แขนหมุน</span>
+        <p>
+          <code class="inline">BoxGeometry</code> ที่ translate ด้วย integer offset (เช่น
+          <code class="inline">geo.translate(x+0.5, y+0.5, z+0.5)</code> แบบที่ voxelKit.js ทำ)
+          จะไม่ได้ center ที่ (0,0,0) เอง — ถ้าจะหมุน mesh นั้น (เช่นล้อรถ) ต้อง
+          <code class="inline">.center()</code> ก่อน ไม่งั้นมันจะหมุนเยื้องแกนแทนที่จะหมุนรอบตัวเอง
+        </p>
+      </div>
+    </section>
+
+    <!-- 04 -->
+    <section class="topic" id="material">
+      <div class="topic-head">
+        <span class="topic-num">04</span>
+        <h2 class="topic-title">Material &amp; สี</h2>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Material</th><th>ตอบสนองแสงไหม</th><th>ใช้เมื่อไหร่</th></tr></thead>
+          <tbody>
+            <tr><td><code class="inline mono">MeshBasicMaterial</code></td><td>ไม่</td><td>ไม่สนใจแสงเลย เอาไว้ debug/UI element ใน 3D</td></tr>
+            <tr><td><code class="inline mono">MeshLambertMaterial</code></td><td>ใช่ (diffuse เท่านั้น)</td><td>ราคาถูก ไม่มี specular highlight</td></tr>
+            <tr><td><code class="inline mono">MeshStandardMaterial</code></td><td>ใช่ (PBR)</td><td>ค่าเริ่มต้นที่ควรใช้ — มี <code class="inline mono">roughness</code>/<code class="inline mono">metalness</code> (ตัวที่ Fortal3DS ใช้ทั้งหมด)</td></tr>
+            <tr><td><code class="inline mono">MeshPhysicalMaterial</code></td><td>ใช่ (PBR ขั้นสูง)</td><td>เพิ่ม clearcoat/transmission — หนักกว่า ใช้เมื่อจำเป็นจริง ๆ</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3 class="sub-title">Vertex color vs Material.color — เลือกยังไง</h3>
+      <p>
+        สองทางให้สีที่มักสับสนกัน: <code class="inline">material.color</code> คือสีทึบเดียวทั้ง mesh,
+        ส่วน <code class="inline">vertexColors: true</code> ให้แต่ละ vertex มีสีของตัวเอง (ต้องมี
+        attribute <code class="inline">color</code> ในตัว geometry) — voxel ตัวรวมสีหลายสีในก้อนเดียว
+        (เช่น body รถที่มีทั้งสีตัวถัง/กระจก/ไฟ) ต้องใช้ vertex color เท่านั้น
+      </p>
+
+      <div class="callout danger">
+        <span class="callout-label">⚠ Gotcha: export format ไม่รองรับ vertex color เท่ากัน</span>
+        <p>
+          <b>glTF/.glb รองรับ vertex color เต็มที่</b> แต่ <b>OBJExporter ของ three.js ไม่รองรับเลยสำหรับ mesh</b>
+          (รองรับแค่ point cloud) แล้วก็ไม่เขียนบรรทัด <code class="inline">mtllib</code>
+          หรือสร้างไฟล์ <code class="inline">.mtl</code> ให้เองด้วย — ถ้า model มีหลายสีในก้อนเดียวแล้ว
+          export เป็น .obj ตรง ๆ สีจะหายหมด ต้องแยกเป็นชิ้นสีเดียวต่อชิ้น ตั้ง
+          <code class="inline">material.color</code> + <code class="inline">material.name</code> แทน
+          แล้วเขียน .mtl เองคู่กัน (ดูตัวอย่างจริงใน kidMain.js's <code class="inline mono">buildMtlText()</code>)
+        </p>
+      </div>
+
+      <h3 class="sub-title">Color space: linear vs sRGB</h3>
+      <p>
+        Three.js (ตั้งแต่ r152+) จัดการ color management ให้อัตโนมัติ — hex color ที่ตั้งผ่าน
+        <code class="inline">new THREE.Color(0xff0000)</code> ถูกแปลงเก็บเป็น linear space ภายใน
+        แต่ format ไฟล์อย่าง OBJ's <code class="inline mono">Kd</code> คาดหวังค่าแบบ sRGB — ตอนเขียนสีออกไฟล์เอง
+        ต้อง <code class="inline">color.clone().convertLinearToSRGB()</code> ก่อน ไม่งั้นสีจะออกมามืดกว่าที่เห็นในจอ
+      </p>
+    </section>
+
+    <!-- 05 -->
+    <section class="topic" id="lights">
+      <div class="topic-head">
+        <span class="topic-num">05</span>
+        <h2 class="topic-title">Lights</h2>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Light</th><th>พฤติกรรม</th></tr></thead>
+          <tbody>
+            <tr><td><code class="inline mono">AmbientLight</code></td><td>ส่องทุกทิศเท่ากัน ไม่มีเงา ไม่มีทิศทาง — กัน object ด้านที่ไม่โดนแสงหลักดำสนิทเกินไป</td></tr>
+            <tr><td><code class="inline mono">DirectionalLight</code></td><td>แสงขนาน (เหมือนดวงอาทิตย์) — ทิศทางมาจาก <code class="inline mono">.position</code> ชี้ไปที่ <code class="inline mono">.target</code> (default origin)</td></tr>
+            <tr><td><code class="inline mono">PointLight</code></td><td>ส่องรอบทิศจากจุดเดียว มี decay ตามระยะ — เหมือนหลอดไฟ</td></tr>
+            <tr><td><code class="inline mono">SpotLight</code></td><td>เหมือน PointLight แต่จำกัดเป็นกรวย (angle/penumbra)</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>
+        Shadow ต้องเปิดเอง 3 จุด: <code class="inline">renderer.shadowMap.enabled = true</code>,
+        <code class="inline">light.castShadow = true</code>, และ <code class="inline">mesh.castShadow</code> /
+        <code class="inline">mesh.receiveShadow</code> ต่อชิ้น — ลืมจุดไหนจุดหนึ่งจะไม่มีเงาขึ้นเลยเงียบ ๆ ไม่มี error เตือน
+      </p>
+    </section>
+
+    <!-- 06 -->
+    <section class="topic" id="camera-controls">
+      <div class="topic-head">
+        <span class="topic-num">06</span>
+        <h2 class="topic-title">Camera Framing &amp; Controls</h2>
+      </div>
+
+      <p>
+        โจทย์ที่เจอบ่อยสุด: จะวางกล้องให้เห็น object พอดีโดยไม่ hardcode ตำแหน่งยังไง —
+        ทางที่ Fortal3DS ใช้ทั้งโปรเจกต์คือคำนวณจาก bounding volume แทน:
+      </p>
+
+      <pre><span class="k">const</span> bounds = <span class="k">new</span> THREE.Box3().setFromObject(target);
+<span class="k">const</span> center = <span class="k">new</span> THREE.Vector3();
+bounds.getCenter(center);
+<span class="k">const</span> sphere = <span class="k">new</span> THREE.Sphere();
+bounds.getBoundingSphere(sphere);
+<span class="k">const</span> radius = sphere.radius;
+
+controls.target.copy(center);
+camera.position.set(
+  center.x + radius * <span class="s">1.6</span>,
+  center.y + radius * <span class="s">1.2</span>,
+  center.z + radius * <span class="s">1.6</span>
+);
+controls.update();</pre>
+
+      <div class="callout">
+        <span class="callout-label">WHY ใช้ Box3 ไม่ใช้ geometry.boundingSphere ตรง ๆ</span>
+        <p>
+          <code class="inline">mesh.geometry.boundingSphere</code> ใช้ได้เฉพาะ mesh ก้อนเดียว
+          แต่พอโมเดลกลายเป็น <code class="inline">Group</code> (เช่นตัวรถที่แยกล้อออกมาเป็น mesh อิสระ)
+          ต้องใช้ <code class="inline">Box3().setFromObject()</code> ที่รวม bounding ของทุก child
+          ในต้นไม้ ไม่งั้นกล้องจะ frame แค่ body ตัดล้อที่โผล่ออกมาทิ้งไป
+        </p>
+      </div>
+
+      <h3 class="sub-title">OrbitControls</h3>
+      <p>
+        มาจาก <code class="inline">three/addons/controls/OrbitControls.js</code> — ให้ผู้ใช้หมุน/ซูม/แพนด้วยเมาส์รอบ
+        <code class="inline">controls.target</code> ต้องเรียก <code class="inline">controls.update()</code> ทุกครั้งหลังขยับ
+        target หรือ camera.position เอง (ไม่งั้นการเปลี่ยนแปลงจะไม่มีผลจนกว่าผู้ใช้จะลากเมาส์ก่อน)
+      </p>
+    </section>
+
+    <!-- 07 -->
+    <section class="topic" id="math">
+      <div class="topic-head">
+        <span class="topic-num">07</span>
+        <h2 class="topic-title">Math &amp; Utility</h2>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Class</th><th>ใช้ทำอะไร</th></tr></thead>
+          <tbody>
+            <tr><td><code class="inline mono">Vector3</code></td><td>จุด/ทิศทางใน 3D — มี add/sub/normalize/lerp ในตัว</td></tr>
+            <tr><td><code class="inline mono">Box3</code></td><td>กล่องขอบเขต axis-aligned — <code class="inline mono">.setFromObject()</code>, <code class="inline mono">.getCenter()</code>, <code class="inline mono">.getSize()</code></td></tr>
+            <tr><td><code class="inline mono">Sphere</code></td><td>ทรงกลมขอบเขต — เอาไว้คำนวณระยะกล้องแบบไม่สนทิศทาง</td></tr>
+            <tr><td><code class="inline mono">Color</code></td><td>เก็บสี — <code class="inline mono">.convertLinearToSRGB()</code> / <code class="inline mono">.convertSRGBToLinear()</code> สำคัญตอน export</td></tr>
+            <tr><td><code class="inline mono">MathUtils</code></td><td>helper ทั่วไป เช่น <code class="inline mono">degToRad()</code>, <code class="inline mono">clamp()</code>, <code class="inline mono">lerp()</code></td></tr>
+            <tr><td><code class="inline mono">Clock</code></td><td>จับเวลา — <code class="inline mono">.getDelta()</code> (วินาทีตั้งแต่เฟรมก่อน) และ <code class="inline mono">.getElapsedTime()</code> (วินาทีรวมตั้งแต่สร้าง)</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 08 -->
+    <section class="topic" id="animation">
+      <div class="topic-head">
+        <span class="topic-num">08</span>
+        <h2 class="topic-title">Animation Loop Patterns</h2>
+      </div>
+      <p>
+        <code class="inline mono">Clock</code> คือหัวใจของ animation แบบไม่ผูกกับ framerate —
+        ใช้ delta คูณ ไม่ใช่บวกค่าคงที่ตรง ๆ ทุกเฟรม ไม่งั้นความเร็ว animation จะขึ้นกับ FPS ของเครื่องผู้เล่น:
+      </p>
+      <pre><span class="k">const</span> clock = <span class="k">new</span> THREE.Clock();
+
+<span class="k">function</span> animate() {
+  requestAnimationFrame(animate);
+  <span class="k">const</span> delta = clock.getDelta();       <span class="c">// วินาทีจริงตั้งแต่เฟรมก่อน</span>
+  <span class="k">const</span> elapsed = clock.getElapsedTime();
+
+  wheel.rotation.x += angularVelocity * delta;  <span class="c">// ✓ frame-rate independent</span>
+  <span class="c">// wheel.rotation.x += 0.05;              ✗ เร็ว/ช้าไม่เท่ากันตามเครื่อง</span>
+
+  car.position.y = baseY + Math.sin(elapsed * speed) * amplitude;
+
+  renderer.render(scene, camera);
+}</pre>
+    </section>
+
+    <!-- 09 -->
+    <section class="topic" id="loaders">
+      <div class="topic-head">
+        <span class="topic-num">09</span>
+        <h2 class="topic-title">Loaders &amp; Exporters</h2>
+      </div>
+
+      <p>
+        ทั้งหมดอยู่ใน <code class="inline">three/addons/</code> ไม่ใช่ core — ต้อง import แยก
+        (และต้องมี import map ชี้ <code class="inline mono">three/addons/</code> ไปที่ CDN/path ที่ถูกด้วย
+        ถ้าโหลดผ่าน browser ตรง ๆ แบบ index.html ของ Fortal3DS)
+      </p>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Format</th><th>Vertex color</th><th>Material/สีทึบ</th><th>เหมาะกับ</th></tr></thead>
+          <tbody>
+            <tr><td><code class="inline mono">.glb</code> / <code class="inline mono">.gltf</code></td><td>✓ รองรับเต็มที่</td><td>✓</td><td>Import เข้า Unity/Unreal/Blender ตรง ๆ — ตัวเลือกหลักของ pipeline นี้</td></tr>
+            <tr><td><code class="inline mono">.obj</code></td><td>✗ (mesh) / ✓ (point cloud เท่านั้น)</td><td>✓ ผ่าน .mtl แยก (ต้องเขียนเอง — three ไม่มี MTLExporter)</td><td>โปรแกรมเก่า/เครื่องมือที่ไม่รองรับ glTF</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3 class="sub-title">Import map — ทำไม index.html ต้องมีบล็อกนี้</h3>
+      <pre>&lt;script <span class="k">type</span>=<span class="s">"importmap"</span>&gt;
+{
+  <span class="s">"imports"</span>: {
+    <span class="s">"three"</span>: <span class="s">"https://unpkg.com/three@0.160.0/build/three.module.js"</span>,
+    <span class="s">"three/addons/"</span>: <span class="s">"https://unpkg.com/three@0.160.0/examples/jsm/"</span>
+  }
+}
+&lt;/script&gt;</pre>
+      <p>
+        ไม่มีบล็อกนี้ <code class="inline">import * as THREE from "three"</code> จะ resolve ไม่ได้เลย
+        (browser ES module ไม่รู้จัก bare specifier "three" ต้องมี import map บอกทางให้)
+      </p>
+    </section>
+
+    <!-- Gotchas -->
+    <section class="topic" id="gotchas">
+      <div class="topic-head">
+        <span class="topic-num">10</span>
+        <h2 class="topic-title">Gotchas จาก Fortal3DS (ของจริง ไม่ใช่ตำรา)</h2>
+      </div>
+      <p>สามอันนี้เจอเองระหว่างทำ voxel car + character pipeline สัปดาห์นี้ เก็บไว้กันเจอซ้ำ:</p>
+
+      <div class="gotcha-card">
+        <h4>1. Object3D.add() reparent ไม่ใช่ copy</h4>
+        <p>
+          <code class="inline">scene.add(mesh)</code> แล้วค่อย <code class="inline">someGroup.add(mesh)</code>
+          ทีหลัง = mesh หลุดจาก scene ไปอยู่ใน someGroup แทน ถ้า someGroup ไม่เคยถูก add เข้า scene
+          จะได้จอว่างเปล่าแบบไม่มี error — สร้าง group ที่ต้องการก่อน แล้ว add เข้า group นั้นทีเดียว
+          ค่อย add group เข้า scene ทีหลังสุด
+        </p>
+      </div>
+
+      <div class="gotcha-card">
+        <h4>2. Collision-free ≠ ดูติดกับตัวสมเหตุสมผล</h4>
+        <p>
+          เช็คว่า voxel สองก้อนไม่ชนกัน (ไม่ z-fight) ไม่พอ — ถ้าให้ระยะห่างคงที่ตลอดทั้งชิ้น
+          (เช่นแขนที่ fix ตำแหน่ง x ตลอดความยาว) เพื่อเลี่ยงจุดที่กว้างที่สุดแค่จุดเดียว จะได้ผลลัพธ์
+          "ไม่ชนก็จริงแต่ดูลอยห่าง" แทน — ทางที่ถูกคือให้ตำแหน่งขยับตามรูปทรงจริงทีละแถว/ทีละจุด
+        </p>
+      </div>
+
+      <div class="gotcha-card">
+        <h4>3. OBJ ไม่ใช่ glTF — vertex color หายถ้าไม่เตรียมตัว</h4>
+        <p>
+          Merge mesh เดียวที่ใช้ vertex color (ปกติสำหรับ glTF) พอ export เป็น .obj แล้วสีหายหมด
+          เพราะ OBJExporter ไม่รองรับ — ต้องรู้ก่อนออกแบบ pipeline ว่าจะ export format ไหน
+          ถ้าต้องรองรับทั้งคู่ ให้แยกเป็น part สีเดียวต่อชิ้นตั้งแต่แรกจะง่ายกว่าแก้ทีหลัง
+        </p>
+      </div>
+    </section>
+
+    <!-- Cheat sheet -->
+    <section class="topic" id="cheatsheet">
+      <div class="topic-head">
+        <span class="topic-num">11</span>
+        <h2 class="topic-title">Cheat Sheet</h2>
+      </div>
+      <pre><span class="c">// Setup ขั้นต่ำสุดที่ต้องมีเสมอ</span>
+<span class="k">const</span> scene = <span class="k">new</span> THREE.Scene();
+<span class="k">const</span> camera = <span class="k">new</span> THREE.PerspectiveCamera(<span class="s">50</span>, innerWidth/innerHeight, <span class="s">0.1</span>, <span class="s">100</span>);
+<span class="k">const</span> renderer = <span class="k">new</span> THREE.WebGLRenderer({ antialias: <span class="k">true</span> });
+renderer.setSize(innerWidth, innerHeight);
+document.body.appendChild(renderer.domElement);
+
+<span class="c">// Resize ต้องอัปเดตทั้งสามจุดนี้</span>
+window.addEventListener(<span class="s">"resize"</span>, () =&gt; {
+  camera.aspect = innerWidth / innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth, innerHeight);
+});
+
+<span class="c">// Dispose ตอนลบ object ถาวร (กัน memory leak — renderer ไม่ทำให้อัตโนมัติ)</span>
+mesh.geometry.dispose();
+mesh.material.dispose();</pre>
+    </section>
+
+    <footer class="page-foot">
+      อ้างอิงจาก three.js r0.160.0 (เวอร์ชันที่ใช้ใน Fortal3DS ผ่าน unpkg import map) —
+      รายละเอียด API เต็มดูที่ threejs.org/docs ส่วนนี้คือสรุปเฉพาะที่เกี่ยวกับงานจริงที่ทำอยู่
+    </footer>
+  </main>
+</div>
+</body>
+</html>
