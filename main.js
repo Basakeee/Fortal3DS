@@ -7,6 +7,7 @@ import { generateSedan90sMesh } from "./carGenerator.js";
 import { generateHumanMesh, HUMAN_PRESETS } from "./humanGenerator.js";
 import { generateDragonGhastMesh } from "./dragonGhastGenerator.js";
 import { generateDemonBossMesh } from "./demonBossGenerator.js";
+import { generateGiantFishMesh } from "./giantFishGenerator.js";
 import { generatePropFighterMesh } from "./airplaneGenerator.js";
 import { generateBattleTankMesh } from "./tankGenerator.js";
 import { generateOakTreeMesh } from "./treeGenerator.js";
@@ -57,6 +58,7 @@ const PRESET_GROUPS = [
     presets: [
       { key: "dragon", label: "Dragon Ghast Boss", generate: () => generateDragonGhastMesh(), filename: "dragon_ghast_boss_voxel.glb" },
       { key: "demon", label: "Demon Boss", generate: () => generateDemonBossMesh(), filename: "demon_boss_voxel.glb" },
+      { key: "fish", label: "Giant Fish Boss", generate: () => generateGiantFishMesh(), filename: "giant_fish_boss_voxel.glb" },
     ],
   },
 ];
