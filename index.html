@@ -2,16 +2,26 @@
 <html lang="th">
 <head>
   <meta charset="UTF-8" />
-  <title>ProcGen Pipeline POC</title>
+  <title>Fortal3DS — Preset Gallery</title>
   <style>
     body { margin: 0; font-family: sans-serif; background: #111; color: #eee; }
-    #ui { position: absolute; top: 10px; left: 10px; z-index: 1; }
-    button { padding: 8px 14px; font-size: 14px; cursor: pointer; }
-    #log { position: absolute; bottom: 10px; left: 10px; z-index: 1; font-size: 12px; color: #9f9; }
+    #ui {
+      position: absolute; top: 10px; left: 10px; z-index: 1;
+      display: flex; flex-direction: column; gap: 10px;
+      max-width: 230px; max-height: calc(100vh - 20px); overflow-y: auto;
+      padding-right: 4px;
+    }
+    .group-label { font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: #888; margin: 4px 0 -4px; }
+    .row { display: flex; flex-wrap: wrap; gap: 6px; }
+    button { padding: 8px 12px; font-size: 13px; cursor: pointer; background: #222; color: #eee; border: 1px solid #444; border-radius: 4px; }
+    button.active { outline: 2px solid #6cf; border-color: #6cf; }
+    #export { margin-top: 4px; background: #235; border-color: #6cf; font-weight: bold; }
+    #log { position: absolute; bottom: 10px; left: 10px; z-index: 1; font-size: 12px; color: #9f9; max-width: 60vw; }
   </style>
 </head>
 <body>
   <div id="ui">
+    <div id="groups"></div>
     <button id="export">Export .glb</button>
   </div>
   <div id="log"></div>

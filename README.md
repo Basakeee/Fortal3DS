@@ -14,10 +14,24 @@ Colors are drawn from a shared 64-swatch palette (`palette.js`) so future themes
 
 - `carGenerator.js` — generic parameterized 90s sedan (boxy body, upright greenhouse).
 - `ae86Generator.js` — Toyota Sprinter Trueno AE86: hatchback proportions, "panda" two-tone paint (position-dependent, not a single flat body color), pop-up headlights, signature black rear garnish with red lens segments. A specific real car needed its own layout rather than a sedan-preset variant, since panda paint and pop-up lights aren't expressible as sedan parameters.
+- `humanGenerator.js` — voxel human character (head/neck/torso/arms/hip/legs/feet), scaled to a target real-world height rather than a fixed voxel size. Presets (`HUMAN_PRESETS.male/female/child`) mirror the player-size options in the Fortal Main Arena sim (170/158/120 cm) — built to replace that sim's current placeholder (an armless torso-and-leg box). Preview at `human.html` / `humanMain.js` with a preset switcher and shirt-color picker.
+- `dragonGhastGenerator.js` — boss creature for the Boss Slayer arena game: same silhouette as Minecraft's Ghast (cubic floating body + a grid of dangling tentacles), re-skinned as a dragon — scale-pattern body, lighter belly, slit reptilian eyes, horns, and a protruding toothed snout instead of Ghast's flat white face. Preview at `dragon.html` / `dragonMain.js`.
+- `airplaneGenerator.js` — generic blocky prop fighter (fuselage, wings, tailplane/fin, static 2-blade propeller). No landing gear — at this voxel resolution thin gear legs read as noise, not detail.
+- `tankGenerator.js` — generic battle tank: hull, side tracks with evenly spaced road wheels, turret set back from the hull's front so the barrel can overhang the nose.
+- `treeGenerator.js` — oak tree: banded-bark trunk, canopy is a blocky sphere (distance test, not a box) so it reads as a tree silhouette from any angle.
+- `tableGenerator.js` — four legs and a slab, no joinery detail. The deliberately plainest preset in the set.
 
 ## Status
 
-Pipeline (Three.js → `.glb` → Unity import) has not yet been confirmed working end-to-end — still waiting on the round-trip test (scale, vertex colors, normals) to be reported back.
+Confirmed working end-to-end (2026-08-31): `.glb` (this repo) → Blender (import glTF, export `.fbx`) → Unity import → custom URP shader `Fortal/VertexColorLit` (reads the mesh's vertex color directly) → correct color in-scene.
+
+The one non-obvious step: Blender's material for an imported glTF mesh is a node graph (Attribute node → Base Color), and FBX's material format can't represent a node graph — only a flat color — so the material Unity extracts from the `.fbx` comes back plain grey even though the vertex colors are intact on the mesh itself. `Fortal/VertexColorLit` (see the `deepspace` Unity project's `Assets/Shaders/`) sidesteps this by reading the vertex color directly instead of depending on the imported material.
+
+## Preset gallery
+
+`index.html` / `main.js` is the main entry point: a sidebar lists every preset above, grouped by category. Clicking one generates it into the shared viewer; **Export .glb** exports whichever preset is currently shown. Adding a future preset is "add one entry to `PRESET_GROUPS` in `main.js`" — the viewer, camera framing, and export logic are all generic over `mesh.geometry.boundingSphere` and don't know about any specific preset.
+
+`human.html` / `dragon.html` stay as separate pages on top of that — they carry extras the gallery doesn't (human's shirt-color swatches, dragon's animated tentacle-sway preview) rather than just being older copies of the same thing.
 
 ## Run locally
 
@@ -29,9 +43,19 @@ npx serve .
 
 Then open the printed `http://localhost:...` URL. Click **Export .glb**, then drag the downloaded file into a Unity project's `Assets/` folder and check scale, vertex colors, and normals survive the round-trip.
 
+## Batch export without a browser
+
+`exportAll.mjs` runs every preset's exporter in Node (no page/click needed) and writes `.glb` files straight to `exports/` (gitignored — treat it as a local build output, not something to commit).
+
+```bash
+npm install
+npm run export
+```
+
+Node has no `FileReader` (which `GLTFExporter`'s binary path uses internally), so the script shims a minimal one backed by Node's global `Blob.arrayBuffer()` — see the top of `exportAll.mjs`.
+
 ## Next steps
 
 - Confirm the vertex-color round-trip actually renders correctly in Unity (needs a vertex-color shader — not guaranteed to "just work").
 - Add CSG boolean geometry (e.g. `three-bvh-csg`) for hard-surface theme presets (ship parts, weapons) once a non-voxel style is needed.
 - Add noise-displaced sphere geometry for organic theme presets (asteroids, rocks).
-- Build a theme-picker UI once more than one style family exists.

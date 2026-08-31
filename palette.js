@@ -63,3 +63,31 @@ export const PALETTE_64 = [
 if (PALETTE_64.length !== 64) {
   throw new Error(`PALETTE_64 must have exactly 64 entries, has ${PALETTE_64.length}`);
 }
+
+// Character theme colors — kept separate from PALETTE_64 (which is fixed at 64
+// automotive swatches) rather than folded in, since skin/hair tones don't belong
+// in a car palette and PALETTE_64's length is asserted elsewhere.
+export const SKIN_TONES = [0xffdbac, 0xf1c27d, 0xe0ac69, 0xc68642, 0x8d5524, 0x5a3825];
+
+export const HAIR_COLORS = [0x1a1a1a, 0x3b2414, 0x6b4423, 0xd9a441, 0xb0b0b0];
+
+// Shirt color picker options — matched to the Fortal Main Arena player-config UI
+// (aowallop.github.io/Ao-Presentation/main-arena-sim) so generated characters use
+// the same 6 team/shirt colors the arena already lets a player pick from.
+export const SHIRT_COLORS = [0x2f6fed, 0xef4060, 0x2fbf6b, 0xf2c230, 0xa855f7, 0xf5793a];
+
+export const PANTS_COLORS = [0x2b2f3a, 0x4a4a4a, 0x1b3a6b, 0x3b3b3b];
+
+export const SHOE_COLORS = [0x1a1a1a, 0xf2f2f2, 0x704214];
+
+// Boss/creature theme colors — for the ghast-silhouette dragon boss (and future
+// monster presets), kept separate from the vehicle/character palettes above for
+// the same reason those are separate from PALETTE_64: different subject, no
+// reason to force it through a 64-entry automotive palette.
+export const DRAGON_SCALES = [0x1b4d2e, 0x2e6b45]; // base + lighter accent, for a position-dependent scale pattern (see ae86Generator's panda paint)
+export const DRAGON_BELLY = 0x3d7a34;
+export const DRAGON_EYE = 0xf2c230;
+export const DRAGON_PUPIL = 0x1a1a1a;
+export const DRAGON_HORN = 0xe8dcc5;
+export const DRAGON_TEETH = 0xf2f2f2;
+export const DRAGON_MOUTH = 0x2b0d0d;

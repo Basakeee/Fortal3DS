@@ -1,0 +1,11 @@
+{
+  "name": "fortal3ds",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "export": "node exportAll.mjs"
+  },
+  "devDependencies": {
+    "three": "0.160.0"
+  }
+}
