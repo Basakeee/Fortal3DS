@@ -3,23 +3,19 @@ import { pushVoxel, voxelsToMesh } from "./voxelKit.js";
 
 // Grid axes match every other generator: x = width, y = height, z = depth,
 // front at z = 0. Deliberately NOT a biped like humanGenerator.js this time —
-// requested as "a cute square block," so there's no separate head/neck/torso
-// split at all: one dominant near-cube body carries the face directly, with
-// small nub arms/legs/horns/tail stuck on rather than full-length limbs. The
-// cube being most of the silhouette, and everything else reading as a small
-// accent on it, is what makes it read "cute" instead of just "small."
+// requested as "just a cute square block," with even the earlier nub arms/
+// legs cut — so there's no separate head/neck/torso/limb split at all, just
+// one cube body carrying the face directly, sitting straight on the ground
+// with horns and a tail as its only appendages.
 export const DEMON_BOSS_DEFAULTS = {
   bodyWidth: 7,
   bodyHeight: 6,
   bodyDepth: 6,
-  footHeight: 2,
-  footSize: 2, // each foot's x/z footprint
-  armSize: 2, // each arm's cube size
   hornHeight: 2,
-  // Target real-world height (feet to horn tips). Shorter and stubbier than
-  // a real boss-scale figure on purpose — a cube blob that's too tall stops
-  // reading as "cute" and starts reading as "a red cube on stilts."
-  heightMeters: 2.2,
+  // Target real-world height (ground to horn tips). Shorter and stubbier
+  // than a real boss-scale figure on purpose — a cube blob that's too tall
+  // stops reading as "cute" and starts reading as "a red cube on stilts."
+  heightMeters: 2,
   skinColor: BODY_PAINTS[0], // candy red
   bellyColor: ENVIRONMENT[10], // miami pink — a soft belly patch instead of a shadow band, for cute over menacing
   hornColor: GREYS[0], // black
@@ -40,28 +36,13 @@ function buildVoxelList(params) {
   const p = { ...DEMON_BOSS_DEFAULTS, ...params };
   const voxels = [];
 
-  const footBaseY = 0;
-  const bodyBaseY = footBaseY + p.footHeight;
+  const bodyBaseY = 0;
   const hornBaseY = bodyBaseY + p.bodyHeight;
 
-  // Feet: two short stub cubes, inset from the body's edges with a gap
-  // between them — enough to read as "stands on two feet" without becoming
-  // full legs.
-  const footZStart = Math.floor((p.bodyDepth - p.footSize) / 2);
-  const feetXs = [1, p.bodyWidth - p.footSize - 1];
-  for (const fx of feetXs) {
-    for (let x = fx; x < fx + p.footSize; x++) {
-      for (let y = footBaseY; y < footBaseY + p.footHeight; y++) {
-        for (let z = footZStart; z < footZStart + p.footSize; z++) {
-          pushVoxel(voxels, x, y, z, p.skinColor);
-        }
-      }
-    }
-  }
-
-  // Body: the one dominant cube. A pink patch on the lower-front face reads
-  // as a cute belly marking; everything else is flat skin color — no
-  // muscle-band shading here, that would fight the "soft" read.
+  // Body: the one dominant cube, sitting flush on the ground — no feet. A
+  // pink patch on the lower-front face reads as a cute belly marking;
+  // everything else is flat skin color — no muscle-band shading here, that
+  // would fight the "soft" read.
   const bellyXStart = Math.floor((p.bodyWidth - 2) / 2);
   const bellyYStart = bodyBaseY + 1;
   for (let x = 0; x < p.bodyWidth; x++) {
@@ -86,20 +67,6 @@ function buildVoxelList(params) {
   }
   for (let x = 0; x < p.bodyWidth; x++) {
     pushVoxel(voxels, x, bodyBaseY, 0, x === fangX ? p.teethColor : p.mouthColor);
-  }
-
-  // Arms: stub cubes at the body's sides, centered in depth, at roughly
-  // chest height — short on purpose, same "nub, not limb" reasoning as the feet.
-  const armZStart = Math.floor((p.bodyDepth - p.armSize) / 2);
-  const armBaseY = bodyBaseY + Math.floor(p.bodyHeight / 3);
-  for (const armXStart of [-p.armSize, p.bodyWidth]) {
-    for (let x = armXStart; x < armXStart + p.armSize; x++) {
-      for (let y = armBaseY; y < armBaseY + p.armSize; y++) {
-        for (let z = armZStart; z < armZStart + p.armSize; z++) {
-          pushVoxel(voxels, x, y, z, p.skinColor);
-        }
-      }
-    }
   }
 
   // Horns: short nub columns on top, kinked outward on the last row for a
@@ -132,7 +99,7 @@ export function generateDemonBossGeometry(paramsOverride = {}) {
 export function generateDemonBossMesh(paramsOverride = {}) {
   const p = { ...DEMON_BOSS_DEFAULTS, ...paramsOverride };
   const voxels = buildVoxelList(p);
-  const totalRows = p.footHeight + p.bodyHeight + p.hornHeight;
+  const totalRows = p.bodyHeight + p.hornHeight;
   const voxelSize = p.heightMeters / totalRows;
   return voxelsToMesh(voxels, voxelSize, "DemonBoss_Voxel");
 }
