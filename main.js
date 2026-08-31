@@ -6,6 +6,7 @@ import { generateAE86TruenoMesh } from "./ae86Generator.js";
 import { generateSedan90sMesh } from "./carGenerator.js";
 import { generateHumanMesh, HUMAN_PRESETS } from "./humanGenerator.js";
 import { generateDragonGhastMesh } from "./dragonGhastGenerator.js";
+import { generateDemonBossMesh } from "./demonBossGenerator.js";
 import { generatePropFighterMesh } from "./airplaneGenerator.js";
 import { generateBattleTankMesh } from "./tankGenerator.js";
 import { generateOakTreeMesh } from "./treeGenerator.js";
@@ -53,7 +54,10 @@ const PRESET_GROUPS = [
   },
   {
     label: "บอส",
-    presets: [{ key: "dragon", label: "Dragon Ghast Boss", generate: () => generateDragonGhastMesh(), filename: "dragon_ghast_boss_voxel.glb" }],
+    presets: [
+      { key: "dragon", label: "Dragon Ghast Boss", generate: () => generateDragonGhastMesh(), filename: "dragon_ghast_boss_voxel.glb" },
+      { key: "demon", label: "Demon Boss", generate: () => generateDemonBossMesh(), filename: "demon_boss_voxel.glb" },
+    ],
   },
 ];
 const ALL_PRESETS = PRESET_GROUPS.flatMap((g) => g.presets);
