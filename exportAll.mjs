@@ -19,6 +19,7 @@ const { generateHumanMesh, HUMAN_PRESETS } = await import("./humanGenerator.js")
 const { generateDragonGhastMesh, assembleDragonGhastAnimatedRig } = await import("./dragonGhastGenerator.js");
 const { generateDemonBossMesh } = await import("./demonBossGenerator.js");
 const { generateGiantFishMesh } = await import("./giantFishGenerator.js");
+const { generateGemMesh, GEM_PRESETS } = await import("./gemGenerator.js");
 const { generateAE86TruenoMesh } = await import("./ae86Generator.js");
 const { generateSedan90sMesh } = await import("./carGenerator.js");
 const { generatePropFighterMesh } = await import("./airplaneGenerator.js");
@@ -57,6 +58,9 @@ await exportMesh(generateDragonGhastMesh(), "dragon_ghast_boss_voxel.glb");
 }
 await exportMesh(generateDemonBossMesh(), "demon_boss_voxel.glb");
 await exportMesh(generateGiantFishMesh(), "giant_fish_boss_voxel.glb");
+for (const [name, preset] of Object.entries(GEM_PRESETS)) {
+  await exportMesh(generateGemMesh(preset), `gem_${name}_voxel.glb`);
+}
 await exportMesh(generateAE86TruenoMesh(), "ae86_trueno_voxel.glb");
 await exportMesh(generateSedan90sMesh(), "sedan_90s_voxel.glb");
 await exportMesh(generatePropFighterMesh(), "prop_fighter_voxel.glb");

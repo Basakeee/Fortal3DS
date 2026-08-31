@@ -8,6 +8,7 @@ import { generateHumanMesh, HUMAN_PRESETS } from "./humanGenerator.js";
 import { generateDragonGhastMesh } from "./dragonGhastGenerator.js";
 import { generateDemonBossMesh } from "./demonBossGenerator.js";
 import { generateGiantFishMesh } from "./giantFishGenerator.js";
+import { generateGemMesh, GEM_PRESETS } from "./gemGenerator.js";
 import { generatePropFighterMesh } from "./airplaneGenerator.js";
 import { generateBattleTankMesh } from "./tankGenerator.js";
 import { generateOakTreeMesh } from "./treeGenerator.js";
@@ -20,6 +21,9 @@ const log = (msg) => (document.getElementById("log").textContent = msg);
 // a new preset later is "add one entry here" — the render/rebuild/export
 // logic below never needs to change per-preset.
 const HUMAN_LABELS = { male: "ผู้ชาย 170", female: "ผู้หญิง 158", child: "เด็ก 120" };
+// Matches BossSlayerGameManager.cs's spotDefs names — same pickup types, so
+// the label here should read as "the same item," not a fresh naming scheme.
+const GEM_LABELS = { attack: "โจมตี", heal: "ดูดเลือด", stun: "ทุบสตัน", ultimate: "ชาร์จอัลติ" };
 const PRESET_GROUPS = [
   {
     label: "รถยนต์",
@@ -60,6 +64,15 @@ const PRESET_GROUPS = [
       { key: "demon", label: "Demon Boss", generate: () => generateDemonBossMesh(), filename: "demon_boss_voxel.glb" },
       { key: "fish", label: "Giant Fish Boss", generate: () => generateGiantFishMesh(), filename: "giant_fish_boss_voxel.glb" },
     ],
+  },
+  {
+    label: "ไอเทม",
+    presets: Object.keys(GEM_PRESETS).map((key) => ({
+      key: `gem_${key}`,
+      label: GEM_LABELS[key],
+      generate: () => generateGemMesh(GEM_PRESETS[key]),
+      filename: `gem_${key}_voxel.glb`,
+    })),
   },
 ];
 const ALL_PRESETS = PRESET_GROUPS.flatMap((g) => g.presets);

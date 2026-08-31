@@ -22,6 +22,7 @@ Colors are drawn from a shared 64-swatch palette (`palette.js`) so future themes
 - `tankGenerator.js` — generic battle tank: hull, side tracks with evenly spaced road wheels, turret set back from the hull's front so the barrel can overhang the nose.
 - `treeGenerator.js` — oak tree: banded-bark trunk, canopy is a blocky sphere (distance test, not a box) so it reads as a tree silhouette from any angle.
 - `tableGenerator.js` — four legs and a slab, no joinery detail. The deliberately plainest preset in the set.
+- `gemGenerator.js` — not a boss, a pickup: the item players collect to attack the boss (see `BossSlayerGameManager.cs`'s `spotDefs`, which spawns one of these as a flat UI circle today). A stepped bipyramid (wide middle girdle, flat top facet, tapered bottom point), two-tone shine, one sparkle voxel. `GEM_PRESETS.attack/heal/stun/ultimate` are colored to match that file's own `spotDefs` `Color` values exactly, not a separate palette — the facet's lighter tone is derived from whatever `gemColor` is passed in (see `lighten()`), so a custom color still gets a correct two-tone shine instead of only the four presets working right.
 
 ## Status
 
