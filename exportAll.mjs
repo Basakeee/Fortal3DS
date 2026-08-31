@@ -16,7 +16,7 @@ globalThis.FileReader = class {
 
 const { GLTFExporter } = await import("three/addons/exporters/GLTFExporter.js");
 const { generateHumanMesh, HUMAN_PRESETS } = await import("./humanGenerator.js");
-const { generateDragonGhastMesh } = await import("./dragonGhastGenerator.js");
+const { generateDragonGhastMesh, assembleDragonGhastAnimatedRig } = await import("./dragonGhastGenerator.js");
 const { generateAE86TruenoMesh } = await import("./ae86Generator.js");
 const { generateSedan90sMesh } = await import("./carGenerator.js");
 const { generatePropFighterMesh } = await import("./airplaneGenerator.js");
@@ -27,7 +27,7 @@ const { generateSimpleTableMesh } = await import("./tableGenerator.js");
 const outDir = "./exports";
 fs.mkdirSync(outDir, { recursive: true });
 
-function exportMesh(mesh, filename) {
+function exportMesh(mesh, filename, exportOptions = {}) {
   const exporter = new GLTFExporter();
   return new Promise((resolve, reject) => {
     exporter.parse(
@@ -40,7 +40,7 @@ function exportMesh(mesh, filename) {
         resolve();
       },
       (error) => reject(error),
-      { binary: true }
+      { binary: true, ...exportOptions }
     );
   });
 }
@@ -49,6 +49,10 @@ for (const [name, preset] of Object.entries(HUMAN_PRESETS)) {
   await exportMesh(generateHumanMesh(preset), `human_${name}_voxel.glb`);
 }
 await exportMesh(generateDragonGhastMesh(), "dragon_ghast_boss_voxel.glb");
+{
+  const { group, clip } = assembleDragonGhastAnimatedRig();
+  await exportMesh(group, "dragon_ghast_boss_animated.glb", { animations: [clip] });
+}
 await exportMesh(generateAE86TruenoMesh(), "ae86_trueno_voxel.glb");
 await exportMesh(generateSedan90sMesh(), "sedan_90s_voxel.glb");
 await exportMesh(generatePropFighterMesh(), "prop_fighter_voxel.glb");

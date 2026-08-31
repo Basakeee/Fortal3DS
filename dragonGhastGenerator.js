@@ -1,3 +1,4 @@
+import * as THREE from "three";
 import { DRAGON_SCALES, DRAGON_BELLY, DRAGON_EYE, DRAGON_PUPIL, DRAGON_HORN, DRAGON_TEETH, DRAGON_MOUTH } from "./palette.js";
 import { pushVoxel, voxelsToMesh } from "./voxelKit.js";
 
@@ -162,19 +163,20 @@ export function generateDragonGhastMesh(paramsOverride = {}) {
   return voxelsToMesh(voxels, voxelSize, "DragonGhast_Voxel");
 }
 
-// Animated-preview variant: body stays one static merged mesh (cheap, and
-// matches what generateDragonGhastMesh exports to .glb), but each tentacle
-// comes back as its own tiny mesh plus a pivotPosition at its attachment row —
-// dragonMain.js parents each mesh under a THREE.Group at that pivot and
-// rotates the group, so the tentacle swings from the top like a dangling limb
-// instead of moving as a rigid part of one block.
+// Animated-rig variant: body stays one static merged mesh (cheap, and matches
+// what generateDragonGhastMesh exports for the "static" .glb), but each
+// tentacle comes back as its own tiny mesh plus a pivotPosition at its
+// attachment row — assembleDragonGhastAnimatedRig (below) parents each mesh
+// under a THREE.Group at that pivot and rotates the group, so the tentacle
+// swings from the top like a dangling limb instead of moving as a rigid part
+// of one block.
 //
-// Deliberately NOT what .glb export uses: the Unity pipeline for the single
-// merged mesh is already verified working end-to-end (glTF → Blender FBX →
-// URP vertex-color shader — see reference-deepspace-project-files memory).
-// Splitting the export into multiple nodes for animation is a bigger,
-// separate decision than "animate the browser preview," so this rig only
-// feeds the preview's animate() loop, not the export button.
+// Kept separate from generateDragonGhastMesh's single merged mesh rather than
+// replacing it: the Unity pipeline for that one static mesh is already
+// verified working end-to-end (glTF → Blender FBX → URP vertex-color shader —
+// see reference-deepspace-project-files memory), and the multi-node animated
+// export's round-trip through that same Blender/FBX step hasn't been
+// verified yet. Exporting both keeps the working path working.
 export function generateDragonGhastRig(paramsOverride = {}) {
   const p = { ...DRAGON_GHAST_DEFAULTS, ...paramsOverride };
   const voxelSize = p.bodyWidthMeters / p.bodyWidth;
@@ -215,4 +217,72 @@ export function generateDragonGhastRig(paramsOverride = {}) {
   }
 
   return { bodyMesh, tentacles };
+}
+
+// Single source of truth for tentacle sway, so the live preview and the baked
+// export clip below can't drift onto two different formulas. Two axes at
+// slightly different speeds/phases so the sway reads as a lazy drifting
+// circle rather than a flat side-to-side metronome.
+function tentacleRotationAt(t, { swayAmplitudeX, swayAmplitudeZ, swaySpeed, swayPhase }) {
+  return {
+    x: Math.sin(t * swaySpeed + swayPhase) * swayAmplitudeX,
+    z: Math.cos(t * swaySpeed * 0.7 + swayPhase) * swayAmplitudeZ,
+  };
+}
+
+// Assembles generateDragonGhastRig's parts into an actual THREE.Group (body +
+// 9 named tentacle pivots) plus a baked AnimationClip driving those pivots'
+// rotation — the multi-node, animatable counterpart to generateDragonGhastMesh's
+// single static mesh. Shared by the browser preview (dragonMain.js, which
+// drives the pivots per-frame with tentacleRotationAt directly instead of the
+// baked samples, for native-framerate smoothness) and the headless batch
+// export (exportAll.mjs), so both ship the exact same sway.
+export function assembleDragonGhastAnimatedRig(paramsOverride = {}, { durationSeconds = 6, fps = 24 } = {}) {
+  const { bodyMesh, tentacles } = generateDragonGhastRig(paramsOverride);
+
+  const group = new THREE.Group();
+  group.name = "DragonGhastBoss";
+  group.add(bodyMesh);
+
+  const swayingTentacles = tentacles.map(({ mesh, pivotPosition, swayAmplitudeX, swayAmplitudeZ, swaySpeed, swayPhase }, index) => {
+    const pivot = new THREE.Group();
+    pivot.name = `TentaclePivot_${index}`;
+    pivot.position.set(pivotPosition.x, pivotPosition.y, pivotPosition.z);
+    pivot.add(mesh);
+    group.add(pivot);
+    return { pivot, swayAmplitudeX, swayAmplitudeZ, swaySpeed, swayPhase };
+  });
+
+  // Rest pose = t = 0, so a viewer that ignores the animation clip (or shows
+  // the model before the clip starts playing) still shows tentacles hanging
+  // naturally instead of frozen at rotation 0.
+  for (const s of swayingTentacles) {
+    const r = tentacleRotationAt(0, s);
+    s.pivot.rotation.x = r.x;
+    s.pivot.rotation.z = r.z;
+  }
+
+  const sampleCount = Math.round(durationSeconds * fps) + 1;
+  const times = new Float32Array(sampleCount);
+  for (let i = 0; i < sampleCount; i++) times[i] = (i / (sampleCount - 1)) * durationSeconds;
+
+  const tracks = swayingTentacles.map((s) => {
+    const values = new Float32Array(sampleCount * 4);
+    const q = new THREE.Quaternion();
+    const e = new THREE.Euler(0, 0, 0, "XYZ");
+    for (let i = 0; i < sampleCount; i++) {
+      // Snap the closing frame to t = 0's pose — the 9 tentacles don't share
+      // a common period, so an exact mathematical loop isn't practical, but a
+      // matched start/end frame is enough for the clip to loop with no pop.
+      const sampleT = i === sampleCount - 1 ? 0 : times[i];
+      const r = tentacleRotationAt(sampleT, s);
+      e.set(r.x, 0, r.z);
+      q.setFromEuler(e);
+      values.set([q.x, q.y, q.z, q.w], i * 4);
+    }
+    return new THREE.QuaternionKeyframeTrack(`${s.pivot.name}.quaternion`, times, values);
+  });
+
+  const clip = new THREE.AnimationClip("TentacleSway", durationSeconds, tracks);
+  return { group, clip, swayingTentacles, tentacleRotationAt };
 }

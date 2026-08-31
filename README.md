@@ -15,7 +15,7 @@ Colors are drawn from a shared 64-swatch palette (`palette.js`) so future themes
 - `carGenerator.js` — generic parameterized 90s sedan (boxy body, upright greenhouse).
 - `ae86Generator.js` — Toyota Sprinter Trueno AE86: hatchback proportions, "panda" two-tone paint (position-dependent, not a single flat body color), pop-up headlights, signature black rear garnish with red lens segments. A specific real car needed its own layout rather than a sedan-preset variant, since panda paint and pop-up lights aren't expressible as sedan parameters.
 - `humanGenerator.js` — voxel human character (head/neck/torso/arms/hip/legs/feet), scaled to a target real-world height rather than a fixed voxel size. Presets (`HUMAN_PRESETS.male/female/child`) mirror the player-size options in the Fortal Main Arena sim (170/158/120 cm) — built to replace that sim's current placeholder (an armless torso-and-leg box). Preview at `human.html` / `humanMain.js` with a preset switcher and shirt-color picker.
-- `dragonGhastGenerator.js` — boss creature for the Boss Slayer arena game: same silhouette as Minecraft's Ghast (cubic floating body + a grid of dangling tentacles), re-skinned as a dragon — scale-pattern body, lighter belly, slit reptilian eyes, horns, and a protruding toothed snout instead of Ghast's flat white face. Preview at `dragon.html` / `dragonMain.js`.
+- `dragonGhastGenerator.js` — boss creature for the Boss Slayer arena game: same silhouette as Minecraft's Ghast (cubic floating body + a grid of dangling tentacles), re-skinned as a dragon — scale-pattern body, lighter belly, slit reptilian eyes, horns, and a protruding toothed snout instead of Ghast's flat white face. Preview at `dragon.html` / `dragonMain.js`, which can export it two ways — see "Animated export" below.
 - `airplaneGenerator.js` — generic blocky prop fighter (fuselage, wings, tailplane/fin, static 2-blade propeller). No landing gear — at this voxel resolution thin gear legs read as noise, not detail.
 - `tankGenerator.js` — generic battle tank: hull, side tracks with evenly spaced road wheels, turret set back from the hull's front so the barrel can overhang the nose.
 - `treeGenerator.js` — oak tree: banded-bark trunk, canopy is a blocky sphere (distance test, not a box) so it reads as a tree silhouette from any angle.
@@ -54,7 +54,18 @@ npm run export
 
 Node has no `FileReader` (which `GLTFExporter`'s binary path uses internally), so the script shims a minimal one backed by Node's global `Blob.arrayBuffer()` — see the top of `exportAll.mjs`.
 
+## Animated export (dragon boss only)
+
+`dragon.html` has two export buttons:
+
+- **Export .glb (static)** — the single merged mesh every other preset also exports. This is the round-trip that's actually been verified through Blender/FBX into Unity (see Status above).
+- **Export .glb (animated tentacles)** — `assembleDragonGhastAnimatedRig()` in `dragonGhastGenerator.js` splits the 9 tentacles into their own named nodes (`TentaclePivot_0`..`8`) instead of merging them into the body, and ships a baked `TentacleSway` `AnimationClip` (9 `QuaternionKeyframeTrack`s, 24fps, 6s, looped by snapping the last frame back to the first) driving their rotation. Verified in Node — export, reload with `GLTFLoader`, confirm the clip and all 9 track targets survive — but **not yet verified through the Blender/FBX/Unity round-trip**: Blender's glTF importer needs "Import Animations" on (default) and its FBX exporter needs "Include ▸ Animation" checked, and this hasn't been confirmed to come out the other side into a working Unity `AnimationClip` yet.
+
+Both buttons, and `exportAll.mjs`'s headless batch export, drive the same `tentacleRotationAt()` sway formula from one place in `dragonGhastGenerator.js` — the live preview, the two export paths, and the baked clip can't drift onto different motion.
+
 ## Next steps
+
+- Confirm the animated dragon boss export survives Blender → FBX → Unity with its `AnimationClip` intact (see "Animated export" above) — the static single-mesh export is confirmed, this one isn't yet.
 
 - Confirm the vertex-color round-trip actually renders correctly in Unity (needs a vertex-color shader — not guaranteed to "just work").
 - Add CSG boolean geometry (e.g. `three-bvh-csg`) for hard-surface theme presets (ship parts, weapons) once a non-voxel style is needed.

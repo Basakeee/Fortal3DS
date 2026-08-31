@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { GLTFExporter } from "three/addons/exporters/GLTFExporter.js";
-import { generateDragonGhastMesh, generateDragonGhastRig } from "./dragonGhastGenerator.js";
+import { generateDragonGhastMesh, assembleDragonGhastAnimatedRig } from "./dragonGhastGenerator.js";
 
 const log = (msg) => (document.getElementById("log").textContent = msg);
 
@@ -19,21 +19,11 @@ const sun = new THREE.DirectionalLight(0xffffff, 1.2);
 sun.position.set(3, 4, 2);
 scene.add(sun);
 
-const boss = new THREE.Group();
-const { bodyMesh, tentacles } = generateDragonGhastRig();
-boss.add(bodyMesh);
-
-// Each tentacle mesh sits under its own pivot at the attachment row, so
-// rotating the pivot swings it from the top like a dangling limb (see
-// generateDragonGhastRig's comment for why this is a separate mesh set from
-// the single merged mesh the export button uses).
-const swayingTentacles = tentacles.map(({ mesh, pivotPosition, swayAmplitudeX, swayAmplitudeZ, swaySpeed, swayPhase }) => {
-  const pivot = new THREE.Group();
-  pivot.position.set(pivotPosition.x, pivotPosition.y, pivotPosition.z);
-  pivot.add(mesh);
-  boss.add(pivot);
-  return { pivot, swayAmplitudeX, swayAmplitudeZ, swaySpeed, swayPhase };
-});
+// assembleDragonGhastAnimatedRig builds the exact same group + clip this page
+// exports (see the "export-animated" handler below) — the live preview drives
+// it with the returned tentacleRotationAt directly (native-framerate, not the
+// baked samples) purely for smoothness; it's the same formula either way.
+const { group: boss, clip: swayClip, swayingTentacles, tentacleRotationAt } = assembleDragonGhastAnimatedRig();
 scene.add(boss);
 
 const bounds = new THREE.Box3().setFromObject(boss);
@@ -51,11 +41,10 @@ const clock = new THREE.Clock();
 function animate() {
   requestAnimationFrame(animate);
   const t = clock.getElapsedTime();
-  for (const { pivot, swayAmplitudeX, swayAmplitudeZ, swaySpeed, swayPhase } of swayingTentacles) {
-    // Two axes, slightly different speed/phase per axis so the sway reads as
-    // a lazy drifting circle rather than a flat side-to-side metronome.
-    pivot.rotation.x = Math.sin(t * swaySpeed + swayPhase) * swayAmplitudeX;
-    pivot.rotation.z = Math.cos(t * swaySpeed * 0.7 + swayPhase) * swayAmplitudeZ;
+  for (const s of swayingTentacles) {
+    const r = tentacleRotationAt(t, s);
+    s.pivot.rotation.x = r.x;
+    s.pivot.rotation.z = r.z;
   }
   renderer.render(scene, camera);
 }
@@ -89,5 +78,42 @@ document.getElementById("export").addEventListener("click", () => {
     },
     (error) => log("Export failed: " + error),
     { binary: true }
+  );
+});
+
+document.getElementById("export-animated").addEventListener("click", () => {
+  // Exports the live rig (body + 9 separately-named tentacle pivots) plus a
+  // baked AnimationClip driving those pivots — this is the multi-node
+  // structure the static button above deliberately avoids exporting. Reset
+  // every pivot to its t = 0 pose first so the glTF's rest pose (what shows
+  // before the clip plays, or in an engine that ignores animation) is a
+  // sensible starting frame rather than whatever mid-sway pose the preview
+  // happened to be in at click-time.
+  for (const s of swayingTentacles) {
+    const r = tentacleRotationAt(0, s);
+    s.pivot.rotation.x = r.x;
+    s.pivot.rotation.z = r.z;
+  }
+
+  const exporter = new GLTFExporter();
+  exporter.parse(
+    boss,
+    (result) => {
+      const blob = new Blob([result], { type: "application/octet-stream" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "dragon_ghast_boss_animated.glb";
+      a.click();
+      URL.revokeObjectURL(url);
+      log(
+        "Exported dragon_ghast_boss_animated.glb — 9 separate tentacle nodes + a looping TentacleSway clip. " +
+          "Check that Blender's glTF import brings the animation in (Import Animations, on by default) and that " +
+          "its FBX export includes it (Include > Animation) before it reaches Unity — this round-trip hasn't been " +
+          "verified yet, unlike the static single-mesh export."
+      );
+    },
+    (error) => log("Export failed: " + error),
+    { binary: true, animations: [swayClip] }
   );
 });
