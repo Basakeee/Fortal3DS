@@ -78,15 +78,15 @@ function buildVoxelList(params) {
   pushVoxel(voxels, 0, eyeY, 0, eyeColor);
   pushVoxel(voxels, p.bodyWidth - 1, eyeY, 0, eyeColor);
 
-  // Horns: short nubs on top, kinked outward on the tip — same technique
-  // demonBossGenerator's horns use, just shorter (subtle at this resolution,
-  // not the dominant feature).
+  // Horns: straight columns, no kinked/offset tip — the demonBossGenerator-
+  // style outward kink read fine as a single voxel (the old hornHeight: 1),
+  // but at hornHeight: 3 the sideways jump on just the last voxel left a
+  // visible step between the straight shaft and the tip, reading as 2
+  // disconnected pieces rather than 1 horn (confirmed in-render, บาส asked
+  // for these NOT segmented).
   for (const hx of [1, p.bodyWidth - 2]) {
-    const outward = hx < p.bodyWidth / 2 ? -1 : 1;
     for (let i = 0; i < p.hornHeight; i++) {
-      const isTip = i === p.hornHeight - 1;
-      const x = isTip ? hx + outward : hx;
-      pushVoxel(voxels, x, p.bodyHeight + i, 1, p.hornColor);
+      pushVoxel(voxels, hx, p.bodyHeight + i, 1, p.hornColor);
     }
   }
 

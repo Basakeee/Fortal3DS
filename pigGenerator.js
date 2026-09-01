@@ -8,7 +8,7 @@ import { pushVoxel, voxelsToMesh } from "./voxelKit.js";
 // already use), with the protruding snout box as Minecraft pig's own most
 // recognizable feature instead of anything invented here.
 export const PIG_DEFAULTS = {
-  bodyWidth: 6,
+  bodyWidth: 7, // was 6 — even width has no true center column, so the 3-wide snout (odd) always sat half a column off-center (confirmed in-render, same class of bug dogGenerator/chickenGenerator had)
   bodyHeight: 4,
   bodyDepth: 8,
   snoutSize: 3, // was 2 — too small to read clearly at this resolution; confirmed by บาส in-render

@@ -14,7 +14,7 @@ export const CAT_DEFAULTS = {
   bodyWidth: 5, // was 3 — too narrow to fit a mask band + eyes + nose + cheeks as distinct rows/columns
   bodyHeight: 4,
   bodyDepth: 6,
-  earHeight: 2,
+  earHeight: 1, // was 2 — บาส asked for just 1 block, no separate base+tip rows
   tailLength: 4,
   heightMeters: 0.4,
   furColor: 0xc9a0ff, // matches MemoryFarmGameManager.cs's animalTypes[4] Cat color exactly (stylized lavender, not a realistic cat color)
