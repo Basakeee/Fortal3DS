@@ -59,7 +59,14 @@ function rowBaselines(p) {
   const neckBaseY = torsoBaseY + p.torsoHeight;
   const headBaseY = neckBaseY + p.neckHeight;
   const hairBaseY = headBaseY + p.headHeight;
-  const hatBaseY = hairBaseY + p.hairHeight;
+  // Same row as hairBaseY, not one row above it — a hat that starts ABOVE
+  // the hair row leaves the whole hair layer exposed in the gap underneath
+  // (confirmed in-render, บาส asked for the hat to fully cover the hair
+  // instead). The brim is wider than headWidth on every side, so placing it
+  // at the hair's own row fully encloses the (narrower) hair voxels inside
+  // solid brim geometry — hidden, not deleted, so buildBodyVoxels doesn't
+  // need a hat-aware branch just for this.
+  const hatBaseY = hairBaseY;
   return { footBaseY, legBaseY, hipBaseY, torsoBaseY, neckBaseY, headBaseY, hairBaseY, hatBaseY };
 }
 
