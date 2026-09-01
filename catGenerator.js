@@ -44,15 +44,13 @@ function buildVoxelList(params) {
   pushVoxel(voxels, 0, faceY, 0, eyeColor);
   pushVoxel(voxels, p.bodyWidth - 1, faceY, 0, eyeColor);
 
-  // Ears: point up via a tapering column, same technique dogGenerator's now
-  // use — a cat's ears read slightly smaller/closer-set than a wolf's at
-  // this resolution since bodyWidth itself is smaller.
-  for (const ex of [0, p.bodyWidth - 2]) {
+  // Ears: straight 1-wide columns at the outer corners, same fix
+  // dogGenerator's ears use — a tapering 2-wide-at-the-base version (tried
+  // earlier) fully overlaps on a body this narrow (bodyWidth=3), fusing into
+  // one slab with no gap at all between the 2 ears (confirmed in-render).
+  for (const ex of [0, p.bodyWidth - 1]) {
     for (let i = 0; i < p.earHeight; i++) {
-      const width = p.earHeight - i;
-      for (let dx = 0; dx < width; dx++) {
-        pushVoxel(voxels, ex + dx, p.bodyHeight + i, 0, p.furColor);
-      }
+      pushVoxel(voxels, ex, p.bodyHeight + i, 0, p.furColor);
     }
   }
 

@@ -38,21 +38,27 @@ function buildVoxelList(params) {
     }
   }
 
-  // Nose + eyes, cut into the front face
-  pushVoxel(voxels, Math.floor(p.bodyWidth / 2), Math.floor(p.bodyHeight / 2) - 1, 0, noseColor);
+  // Nose + eyes, cut into the front face. bodyWidth is even, so there's no
+  // single true-center column — a 2-wide nose (x = width/2 - 1, width/2)
+  // stays symmetric under the 2 eyes instead of sitting 1 column off-center
+  // (confirmed off-center in-render with the earlier single-voxel version).
+  const noseX = p.bodyWidth / 2 - 1;
+  const noseY = Math.floor(p.bodyHeight / 2) - 1;
+  pushVoxel(voxels, noseX, noseY, 0, noseColor);
+  pushVoxel(voxels, noseX + 1, noseY, 0, noseColor);
   const eyeY = p.bodyHeight - 2;
   pushVoxel(voxels, 0, eyeY, 0, eyeColor);
   pushVoxel(voxels, p.bodyWidth - 1, eyeY, 0, eyeColor);
 
-  // Ears: point UP via a tapering column (2 wide at the base, 1 at the tip)
-  // — same technique giantFish's dorsal fin uses — standing straight up like
-  // a wolf's, not hanging down like a floppy-eared breed.
-  for (const ex of [0, p.bodyWidth - 2]) {
+  // Ears: straight 1-wide columns at the outer corners, not tapered — a
+  // tapering 2-wide-at-the-base version (tried earlier) touches or overlaps
+  // at bodyWidth=4, fusing into one slab with no visible gap between the 2
+  // ears (confirmed in-render). 1-wide columns can never overlap regardless
+  // of bodyWidth, and match Minecraft's own wolf ears, which are just
+  // flat single-block nubs, not multi-voxel spikes.
+  for (const ex of [0, p.bodyWidth - 1]) {
     for (let i = 0; i < p.earHeight; i++) {
-      const width = p.earHeight - i;
-      for (let dx = 0; dx < width; dx++) {
-        pushVoxel(voxels, ex + dx, p.bodyHeight + i, 0, p.furColor);
-      }
+      pushVoxel(voxels, ex, p.bodyHeight + i, 0, p.furColor);
     }
   }
 

@@ -11,7 +11,7 @@ export const PIG_DEFAULTS = {
   bodyWidth: 6,
   bodyHeight: 4,
   bodyDepth: 8,
-  snoutSize: 2, // Minecraft's pig snout is a small square nub, not wide/flat like the earlier design
+  snoutSize: 3, // was 2 — too small to read clearly at this resolution; confirmed by บาส in-render
   heightMeters: 0.5,
   skinColor: 0xffb0c8, // matches MemoryFarmGameManager.cs's animalTypes[0] Pig color exactly
 };
@@ -27,7 +27,6 @@ function darken(hex, amount) {
 function buildVoxelList(params) {
   const p = { ...PIG_DEFAULTS, ...params };
   const voxels = [];
-  const snoutColor = darken(p.skinColor, 0.2);
   const eyeColor = darken(p.skinColor, 0.85);
 
   // Body: the one dominant block, flush on the ground
@@ -39,19 +38,20 @@ function buildVoxelList(params) {
     }
   }
 
-  // Snout: small square box protruding off the front face, centered — the
-  // single feature that reads as "pig" in Minecraft's own model, so it gets
-  // the same treatment here instead of the wide-flat-panel version tried
-  // earlier.
+  // Snout: square box protruding off the front face, centered — the single
+  // feature that reads as "pig" in Minecraft's own model. Plain skinColor
+  // throughout (no darkened shade, no nostril dots) — บาส confirmed in-render
+  // that even a 20%-darkened accent read as near-black under this viewer's
+  // lighting on a protruding face, which fought the "all pink" pig read; the
+  // protruding SHAPE alone is what needs to carry "snout" here, not a color
+  // difference.
   const snoutXStart = Math.floor((p.bodyWidth - p.snoutSize) / 2);
   const snoutYStart = Math.floor(p.bodyHeight / 2) - 1;
   for (let x = snoutXStart; x < snoutXStart + p.snoutSize; x++) {
     for (let y = snoutYStart; y < snoutYStart + p.snoutSize; y++) {
-      pushVoxel(voxels, x, y, -1, snoutColor);
+      pushVoxel(voxels, x, y, -1, p.skinColor);
     }
   }
-  pushVoxel(voxels, snoutXStart, snoutYStart, -2, eyeColor);
-  pushVoxel(voxels, snoutXStart + p.snoutSize - 1, snoutYStart, -2, eyeColor);
 
   // Eyes: 2 single dark voxels on the front face, above the snout
   const eyeY = p.bodyHeight - 2;

@@ -9,7 +9,7 @@ export const COW_DEFAULTS = {
   bodyWidth: 7,
   bodyHeight: 5,
   bodyDepth: 10,
-  snoutSize: 2,
+  snoutSize: 3, // was 2 — too small to read clearly, same fix pigGenerator's snout got
   hornHeight: 1,
   tailLength: 3,
   heightMeters: 1.1,
@@ -29,7 +29,6 @@ function darken(hex, amount) {
 function buildVoxelList(params) {
   const p = { ...COW_DEFAULTS, ...params };
   const voxels = [];
-  const snoutColor = darken(p.coatColor, 0.4);
   const eyeColor = darken(p.coatColor, 0.9);
 
   // Hand-placed patch regions (in body-local x/z) — irregular blotches read
@@ -54,15 +53,21 @@ function buildVoxelList(params) {
   }
 
   // Snout: protruding square nub on the front face, same technique
-  // pigGenerator uses, just wider — a cow's muzzle is Minecraft's other
-  // strong identifying feature alongside the patches.
+  // pigGenerator uses — a cow's muzzle is Minecraft's other strong
+  // identifying feature alongside the patches. snoutY was 0 (ground level)
+  // — now that this body has no legs, y=0 IS the ground, so a ground-level
+  // snout stuck out of the very bottom edge and read as sinking into the
+  // floor (confirmed in-render); this matches pigGenerator's own snout
+  // height instead. Plain coatColor, no darkened shade/nostril dots — same
+  // "the protruding shape carries the read, not a color difference" fix
+  // pigGenerator's snout needed.
   const snoutXStart = Math.floor((p.bodyWidth - p.snoutSize) / 2);
-  const snoutY = 0;
+  const snoutYStart = Math.floor(p.bodyHeight / 2) - 1;
   for (let x = snoutXStart; x < snoutXStart + p.snoutSize; x++) {
-    pushVoxel(voxels, x, snoutY, -1, snoutColor);
+    for (let y = snoutYStart; y < snoutYStart + p.snoutSize; y++) {
+      pushVoxel(voxels, x, y, -1, p.coatColor);
+    }
   }
-  pushVoxel(voxels, snoutXStart, snoutY, -2, eyeColor);
-  pushVoxel(voxels, snoutXStart + p.snoutSize - 1, snoutY, -2, eyeColor);
 
   // Eyes
   const eyeY = p.bodyHeight - 2;
