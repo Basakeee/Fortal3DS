@@ -22,7 +22,11 @@ export const COIN_DEFAULTS = {
 export const COIN_PRESETS = {
   gold: { coinColor: 0xd9a441 },
   silver: { coinColor: 0xc0c0c8 },
-  bronze: { coinColor: 0xb5651d },
+  // Was 0xb5651d ("rust" from palette.js's ENVIRONMENT swatches) — read as
+  // orange rather than bronze. 0x704214 is palette.js's own BODY_PAINTS
+  // "brown" swatch instead of a new invented hex, per the README's own rule
+  // (new themes draw from the shared palette so assets stay consistent).
+  bronze: { coinColor: 0x704214 },
 };
 
 // Shades a hex color toward black (amount < 0) or white (amount > 0) by
