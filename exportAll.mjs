@@ -15,7 +15,7 @@ globalThis.FileReader = class {
 };
 
 const { GLTFExporter } = await import("three/addons/exporters/GLTFExporter.js");
-const { generateHumanMesh, HUMAN_PRESETS } = await import("./humanGenerator.js");
+const { generateHumanMesh, HUMAN_PRESETS, generateFarmerMesh } = await import("./humanGenerator.js");
 const { generateDragonGhastMesh, assembleDragonGhastAnimatedRig } = await import("./dragonGhastGenerator.js");
 const { generateDemonBossMesh } = await import("./demonBossGenerator.js");
 const { generateGiantFishMesh } = await import("./giantFishGenerator.js");
@@ -57,6 +57,7 @@ function exportMesh(mesh, filename, exportOptions = {}) {
 for (const [name, preset] of Object.entries(HUMAN_PRESETS)) {
   await exportMesh(generateHumanMesh(preset), `human_${name}_voxel.glb`);
 }
+await exportMesh(generateFarmerMesh(), "farmer_voxel.glb");
 await exportMesh(generateDragonGhastMesh(), "dragon_ghast_boss_voxel.glb");
 {
   const { group, clip } = assembleDragonGhastAnimatedRig();

@@ -4,7 +4,7 @@ import { GLTFExporter } from "three/addons/exporters/GLTFExporter.js";
 
 import { generateAE86TruenoMesh } from "./ae86Generator.js";
 import { generateSedan90sMesh } from "./carGenerator.js";
-import { generateHumanMesh, HUMAN_PRESETS } from "./humanGenerator.js";
+import { generateHumanMesh, HUMAN_PRESETS, generateFarmerMesh } from "./humanGenerator.js";
 import { generateDragonGhastMesh } from "./dragonGhastGenerator.js";
 import { generateDemonBossMesh } from "./demonBossGenerator.js";
 import { generateGiantFishMesh } from "./giantFishGenerator.js";
@@ -57,12 +57,20 @@ const PRESET_GROUPS = [
   },
   {
     label: "คน",
-    presets: Object.keys(HUMAN_PRESETS).map((key) => ({
-      key: `human_${key}`,
-      label: HUMAN_LABELS[key],
-      generate: () => generateHumanMesh(HUMAN_PRESETS[key]),
-      filename: `human_${key}_voxel.glb`,
-    })),
+    presets: [
+      ...Object.keys(HUMAN_PRESETS).map((key) => ({
+        key: `human_${key}`,
+        label: HUMAN_LABELS[key],
+        generate: () => generateHumanMesh(HUMAN_PRESETS[key]),
+        filename: `human_${key}_voxel.glb`,
+      })),
+      // Body + shirt as 2 separate nodes (not 1 merged mesh like the presets
+      // above) — see humanGenerator.js's generateFarmerRig for why: the
+      // shirt needs its own plain, non-vertex-colored material so its color
+      // can be changed at runtime in Unity, one model instead of baking a
+      // separate export per farmerTypes color.
+      { key: "farmer", label: "Farmer (Memory Farm)", generate: () => generateFarmerMesh(), filename: "farmer_voxel.glb" },
+    ],
   },
   {
     label: "บอส",
