@@ -9,6 +9,7 @@ import { generateDragonGhastMesh } from "./dragonGhastGenerator.js";
 import { generateDemonBossMesh } from "./demonBossGenerator.js";
 import { generateGiantFishMesh } from "./giantFishGenerator.js";
 import { generateGemMesh, GEM_PRESETS } from "./gemGenerator.js";
+import { generateCoinMesh, COIN_PRESETS } from "./coinGenerator.js";
 import { generatePropFighterMesh } from "./airplaneGenerator.js";
 import { generateBattleTankMesh } from "./tankGenerator.js";
 import { generateOakTreeMesh } from "./treeGenerator.js";
@@ -24,6 +25,7 @@ const HUMAN_LABELS = { male: "ผู้ชาย 170", female: "ผู้หญ�
 // Matches BossSlayerGameManager.cs's spotDefs names — same pickup types, so
 // the label here should read as "the same item," not a fresh naming scheme.
 const GEM_LABELS = { attack: "โจมตี", heal: "ดูดเลือด", stun: "ทุบสตัน", ultimate: "ชาร์จอัลติ" };
+const COIN_LABELS = { gold: "เหรียญทอง", silver: "เหรียญเงิน", bronze: "เหรียญทองแดง" };
 const PRESET_GROUPS = [
   {
     label: "รถยนต์",
@@ -72,6 +74,15 @@ const PRESET_GROUPS = [
       label: GEM_LABELS[key],
       generate: () => generateGemMesh(GEM_PRESETS[key]),
       filename: `gem_${key}_voxel.glb`,
+    })),
+  },
+  {
+    label: "เหรียญ (Bounty Hunter)",
+    presets: Object.keys(COIN_PRESETS).map((key) => ({
+      key: `coin_${key}`,
+      label: COIN_LABELS[key],
+      generate: () => generateCoinMesh(COIN_PRESETS[key]),
+      filename: `coin_${key}_voxel.glb`,
     })),
   },
 ];

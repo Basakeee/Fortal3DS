@@ -20,6 +20,7 @@ const { generateDragonGhastMesh, assembleDragonGhastAnimatedRig } = await import
 const { generateDemonBossMesh } = await import("./demonBossGenerator.js");
 const { generateGiantFishMesh } = await import("./giantFishGenerator.js");
 const { generateGemMesh, GEM_PRESETS } = await import("./gemGenerator.js");
+const { generateCoinMesh, COIN_PRESETS } = await import("./coinGenerator.js");
 const { generateAE86TruenoMesh } = await import("./ae86Generator.js");
 const { generateSedan90sMesh } = await import("./carGenerator.js");
 const { generatePropFighterMesh } = await import("./airplaneGenerator.js");
@@ -60,6 +61,9 @@ await exportMesh(generateDemonBossMesh(), "demon_boss_voxel.glb");
 await exportMesh(generateGiantFishMesh(), "giant_fish_boss_voxel.glb");
 for (const [name, preset] of Object.entries(GEM_PRESETS)) {
   await exportMesh(generateGemMesh(preset), `gem_${name}_voxel.glb`);
+}
+for (const [name, preset] of Object.entries(COIN_PRESETS)) {
+  await exportMesh(generateCoinMesh(preset), `coin_${name}_voxel.glb`);
 }
 await exportMesh(generateAE86TruenoMesh(), "ae86_trueno_voxel.glb");
 await exportMesh(generateSedan90sMesh(), "sedan_90s_voxel.glb");
