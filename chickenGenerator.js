@@ -6,7 +6,7 @@ import { pushVoxel, voxelsToMesh } from "./voxelKit.js";
 // with the comb/beak/wattle/wings Minecraft's own chicken uses as its
 // identifying features instead of the round-body/biped read tried earlier.
 export const CHICKEN_DEFAULTS = {
-  bodyWidth: 4,
+  bodyWidth: 5, // was 4 — even width has no true center column, so the beak sat 1 column off-center from the eyes (confirmed in-render, see บาส's feedback)
   bodyHeight: 4,
   bodyDepth: 5,
   combHeight: 1,

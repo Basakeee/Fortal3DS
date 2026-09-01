@@ -5,21 +5,31 @@ import { pushVoxel, voxelsToMesh } from "./voxelKit.js";
 // closest official "dog" mob) — one dominant body block, no legs, standing
 // pointed ears rather than the earlier down-hanging ones (a wolf's ears
 // stand up; that was this animal's actual identifying trait, not floppiness).
+// bodyWidth is 5 (odd), not the original 4 — a true center column is what
+// pigGenerator's eye/snout overlap bug turned out to need too (see its own
+// fix), and a wolf's face reads with a distinct protruding snout + dark nose
+// tip (per บาส's reference image), which needs that same clearance.
 export const DOG_DEFAULTS = {
-  bodyWidth: 4,
+  bodyWidth: 5,
   bodyHeight: 4,
   bodyDepth: 7,
+  snoutSize: 3,
   earHeight: 2,
   tailLength: 3,
   heightMeters: 0.6,
   furColor: 0xd8a05a, // matches MemoryFarmGameManager.cs's animalTypes[1] Dog color exactly
 };
 
+// Shades toward black (amount > 0) or white (amount < 0) — same safe
+// two-direction formula coinGenerator.js's shade() uses (c*(1+amount) for
+// lightening clamps naturally under 255 for any valid 0-255 input, unlike a
+// naive c*(1-amount) with a negative amount, which can overflow a channel
+// past 255 and corrupt the packed hex).
 function darken(hex, amount) {
   const r = (hex >> 16) & 0xff;
   const g = (hex >> 8) & 0xff;
   const b = hex & 0xff;
-  const mix = (c) => Math.round(c * (1 - amount));
+  const mix = (c) => Math.round(amount >= 0 ? c * (1 - amount) : c + (255 - c) * -amount);
   return (mix(r) << 16) | (mix(g) << 8) | mix(b);
 }
 
@@ -38,17 +48,30 @@ function buildVoxelList(params) {
     }
   }
 
-  // Nose + eyes, cut into the front face. bodyWidth is even, so there's no
-  // single true-center column — a 2-wide nose (x = width/2 - 1, width/2)
-  // stays symmetric under the 2 eyes instead of sitting 1 column off-center
-  // (confirmed off-center in-render with the earlier single-voxel version).
-  const noseX = p.bodyWidth / 2 - 1;
-  const noseY = Math.floor(p.bodyHeight / 2) - 1;
-  pushVoxel(voxels, noseX, noseY, 0, noseColor);
-  pushVoxel(voxels, noseX + 1, noseY, 0, noseColor);
+  // Snout: protruding box like pigGenerator/cowGenerator's — the wolf
+  // reference บาส sent has a clearly separate muzzle block, not just a nose
+  // dot cut flush into the face like this used to have. Slightly lighter
+  // than the coat (a muzzle patch is common on dogs) with a single dark nose
+  // voxel at its forward-most tip.
+  const muzzleColor = darken(p.furColor, -0.15); // negative amount lightens, see darken()
+  const snoutXStart = Math.floor((p.bodyWidth - p.snoutSize) / 2);
+  const snoutYStart = Math.floor(p.bodyHeight / 2) - 1;
+  for (let x = snoutXStart; x < snoutXStart + p.snoutSize; x++) {
+    for (let y = snoutYStart; y < snoutYStart + p.snoutSize; y++) {
+      pushVoxel(voxels, x, y, -1, muzzleColor);
+    }
+  }
+  pushVoxel(voxels, snoutXStart + 1, snoutYStart, -2, noseColor);
+
+  // Eyes: outer edge columns — same reason pigGenerator's eyes moved there,
+  // clear of the centered snout regardless of snoutSize.
   const eyeY = p.bodyHeight - 2;
   pushVoxel(voxels, 0, eyeY, 0, eyeColor);
   pushVoxel(voxels, p.bodyWidth - 1, eyeY, 0, eyeColor);
+  // Brow: single dark mark above each eye — the reference's most visible
+  // detail beyond eyes/snout/ears, reads as an alert "wolf" expression.
+  pushVoxel(voxels, 0, eyeY + 1, 0, eyeColor);
+  pushVoxel(voxels, p.bodyWidth - 1, eyeY + 1, 0, eyeColor);
 
   // Ears: straight 1-wide columns at the outer corners, not tapered — a
   // tapering 2-wide-at-the-base version (tried earlier) touches or overlaps

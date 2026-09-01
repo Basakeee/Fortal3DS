@@ -10,7 +10,7 @@ export const COW_DEFAULTS = {
   bodyHeight: 5,
   bodyDepth: 10,
   snoutSize: 3, // was 2 — too small to read clearly, same fix pigGenerator's snout got
-  hornHeight: 1,
+  hornHeight: 3, // was 1 — too small to read at this resolution; บาส asked for these bigger
   tailLength: 3,
   heightMeters: 1.1,
   coatColor: 0xe6e6e6, // matches MemoryFarmGameManager.cs's animalTypes[3] Cow color exactly
@@ -30,6 +30,7 @@ function buildVoxelList(params) {
   const p = { ...COW_DEFAULTS, ...params };
   const voxels = [];
   const eyeColor = darken(p.coatColor, 0.9);
+  const nostrilColor = darken(p.coatColor, 0.45);
 
   // Hand-placed patch regions (in body-local x/z) — irregular blotches read
   // as "cow spots," a regular/algorithmic pattern would read as a grid
@@ -58,9 +59,10 @@ function buildVoxelList(params) {
   // — now that this body has no legs, y=0 IS the ground, so a ground-level
   // snout stuck out of the very bottom edge and read as sinking into the
   // floor (confirmed in-render); this matches pigGenerator's own snout
-  // height instead. Plain coatColor, no darkened shade/nostril dots — same
-  // "the protruding shape carries the read, not a color difference" fix
-  // pigGenerator's snout needed.
+  // height instead. Plain coatColor with 2 inset nostril "dashes" — บาส
+  // asked for these back specifically (an all-plain snout with no marking at
+  // all was too subtle against the equally-plain body around it, unlike
+  // pig's snout which at least protrudes past a differently-shaped face).
   const snoutXStart = Math.floor((p.bodyWidth - p.snoutSize) / 2);
   const snoutYStart = Math.floor(p.bodyHeight / 2) - 1;
   for (let x = snoutXStart; x < snoutXStart + p.snoutSize; x++) {
@@ -68,6 +70,8 @@ function buildVoxelList(params) {
       pushVoxel(voxels, x, y, -1, p.coatColor);
     }
   }
+  pushVoxel(voxels, snoutXStart, snoutYStart, -2, nostrilColor);
+  pushVoxel(voxels, snoutXStart + p.snoutSize - 1, snoutYStart, -2, nostrilColor);
 
   // Eyes
   const eyeY = p.bodyHeight - 2;

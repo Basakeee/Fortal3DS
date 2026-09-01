@@ -1,33 +1,31 @@
 import { pushVoxel, voxelsToMesh } from "./voxelKit.js";
 
 // Grid axes match pigGenerator.js: x = width, y = height, z = depth, front
-// at z = 0. Redesigned to follow Minecraft's own Cat model directly — one
-// dominant body block, no legs, smallest of the farm animals with pointed
-// ears and the longest tail as its 2 identifying features (same role they
-// played in the earlier design, just on a legless single-block body now).
+// at z = 0. Redesigned again after บาส's reference image — the previous
+// version (plain-colored block + tall thin ears) read as "rabbit," not
+// "cat," since nothing but ear height/tail length distinguished it from a
+// generic small mammal. This version copies the reference's actual face
+// PATTERN instead of relying on silhouette alone: a dark mask band across
+// the upper face, dark ear tips, green eyes, and a pink nose — all fixed
+// accent colors rather than derived from furColor, since a stylized
+// lavender cat (matching MemoryFarmGameManager.cs's own color) still needs
+// a real cat's face markings, not a lavender-toned version of them.
 export const CAT_DEFAULTS = {
-  bodyWidth: 3,
-  bodyHeight: 3,
+  bodyWidth: 5, // was 3 — too narrow to fit a mask band + eyes + nose + cheeks as distinct rows/columns
+  bodyHeight: 4,
   bodyDepth: 6,
   earHeight: 2,
   tailLength: 4,
   heightMeters: 0.4,
   furColor: 0xc9a0ff, // matches MemoryFarmGameManager.cs's animalTypes[4] Cat color exactly (stylized lavender, not a realistic cat color)
+  maskColor: 0x4a2e70, // dark band across the upper face + ear tips — derived from furColor's own hue (not black), so it reads as "this cat's shadow tone," not an unrelated color
+  eyeColor: 0x4caf6a, // green, per the reference — fixed rather than derived, real cat eyes aren't fur-colored either
+  noseColor: 0xe07a94, // pink, per the reference — fixed for the same reason
 };
-
-function darken(hex, amount) {
-  const r = (hex >> 16) & 0xff;
-  const g = (hex >> 8) & 0xff;
-  const b = hex & 0xff;
-  const mix = (c) => Math.round(c * (1 - amount));
-  return (mix(r) << 16) | (mix(g) << 8) | mix(b);
-}
 
 function buildVoxelList(params) {
   const p = { ...CAT_DEFAULTS, ...params };
   const voxels = [];
-  const eyeColor = darken(p.furColor, 0.85);
-  const noseColor = darken(p.furColor, 0.5);
 
   // Body: the one dominant block, flush on the ground
   for (let x = 0; x < p.bodyWidth; x++) {
@@ -38,24 +36,31 @@ function buildVoxelList(params) {
     }
   }
 
-  // Nose + eyes, cut into the front face
-  const faceY = Math.floor(p.bodyHeight / 2);
-  pushVoxel(voxels, Math.floor(p.bodyWidth / 2), faceY - 1, 0, noseColor);
-  pushVoxel(voxels, 0, faceY, 0, eyeColor);
-  pushVoxel(voxels, p.bodyWidth - 1, faceY, 0, eyeColor);
+  // Face pattern, cut into the front face — bodyHeight=4 maps 1 row per
+  // reference band: mask (top) -> eyes -> nose+cheeks -> chin (bottom).
+  const maskY = p.bodyHeight - 1;
+  const eyeY = p.bodyHeight - 2;
+  const noseY = p.bodyHeight - 3;
+  for (let x = 0; x < p.bodyWidth; x++) pushVoxel(voxels, x, maskY, 0, p.maskColor);
+  pushVoxel(voxels, 0, eyeY, 0, p.eyeColor);
+  pushVoxel(voxels, p.bodyWidth - 1, eyeY, 0, p.eyeColor);
+  pushVoxel(voxels, Math.floor(p.bodyWidth / 2), noseY, 0, p.noseColor);
+  // Bottom row (chin) stays plain furColor — already filled by the body loop.
 
-  // Ears: straight 1-wide columns at the outer corners, same fix
-  // dogGenerator's ears use — a tapering 2-wide-at-the-base version (tried
-  // earlier) fully overlaps on a body this narrow (bodyWidth=3), fusing into
-  // one slab with no gap at all between the 2 ears (confirmed in-render).
+  // Ears: straight 1-wide columns at the outer corners (no taper — a
+  // tapering version overlapped/fused on a narrow body, see the earlier
+  // fix), dark-tipped like the reference instead of solid furColor — the
+  // tip color is what visually separates this from a generic ear silhouette.
   for (const ex of [0, p.bodyWidth - 1]) {
     for (let i = 0; i < p.earHeight; i++) {
-      pushVoxel(voxels, ex, p.bodyHeight + i, 0, p.furColor);
+      const isTip = i === p.earHeight - 1;
+      pushVoxel(voxels, ex, p.bodyHeight + i, 0, isTip ? p.maskColor : p.furColor);
     }
   }
 
-  // Tail: long, sweeping up and back — the longest of the 4 mammals, the
-  // clearest "this one's the cat" signal even from behind.
+  // Tail: long, sweeping up and back — the longest of the 4 mammals, still a
+  // clear "this one's the cat" signal even from behind, on top of the face
+  // pattern now doing the same job from the front.
   const tailX = Math.floor(p.bodyWidth / 2);
   let ty = p.bodyHeight - 1;
   for (let i = 0; i < p.tailLength; i++) {

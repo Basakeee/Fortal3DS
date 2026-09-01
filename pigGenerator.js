@@ -40,11 +40,12 @@ function buildVoxelList(params) {
 
   // Snout: square box protruding off the front face, centered — the single
   // feature that reads as "pig" in Minecraft's own model. Plain skinColor
-  // throughout (no darkened shade, no nostril dots) — บาส confirmed in-render
-  // that even a 20%-darkened accent read as near-black under this viewer's
-  // lighting on a protruding face, which fought the "all pink" pig read; the
-  // protruding SHAPE alone is what needs to carry "snout" here, not a color
-  // difference.
+  // (no all-over dark shade — that read as near-black under this viewer's
+  // lighting, see the earlier fix), but two small nostril "dashes" back in
+  // (บาส asked for these specifically) — 2 single voxels, moderately darkened
+  // and inset from the snout's own edges so they read as 2 short marks with
+  // pink margin around them, not another edge-to-edge dark bar.
+  const nostrilColor = darken(p.skinColor, 0.45);
   const snoutXStart = Math.floor((p.bodyWidth - p.snoutSize) / 2);
   const snoutYStart = Math.floor(p.bodyHeight / 2) - 1;
   for (let x = snoutXStart; x < snoutXStart + p.snoutSize; x++) {
@@ -52,11 +53,18 @@ function buildVoxelList(params) {
       pushVoxel(voxels, x, y, -1, p.skinColor);
     }
   }
+  pushVoxel(voxels, snoutXStart, snoutYStart, -2, nostrilColor);
+  pushVoxel(voxels, snoutXStart + p.snoutSize - 1, snoutYStart, -2, nostrilColor);
 
-  // Eyes: 2 single dark voxels on the front face, above the snout
+  // Eyes: pushed out to the body's outer edge columns — snoutSize grew to 3
+  // (centered, so it spans the middle 3 of 6 columns) and the eyes' old
+  // position (1 column in from each edge) landed INSIDE that span, so the
+  // protruding snout box sat directly in front of the left eye and hid it
+  // (confirmed in-render). The outer edge columns are clear of the snout at
+  // any reasonable size.
   const eyeY = p.bodyHeight - 2;
-  pushVoxel(voxels, 1, eyeY, 0, eyeColor);
-  pushVoxel(voxels, p.bodyWidth - 2, eyeY, 0, eyeColor);
+  pushVoxel(voxels, 0, eyeY, 0, eyeColor);
+  pushVoxel(voxels, p.bodyWidth - 1, eyeY, 0, eyeColor);
 
   // Ears: small nubs on the top-front corners
   pushVoxel(voxels, 1, p.bodyHeight, 0, p.skinColor);
