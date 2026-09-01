@@ -21,6 +21,11 @@ const { generateDemonBossMesh } = await import("./demonBossGenerator.js");
 const { generateGiantFishMesh } = await import("./giantFishGenerator.js");
 const { generateGemMesh, GEM_PRESETS } = await import("./gemGenerator.js");
 const { generateCoinMesh, COIN_PRESETS } = await import("./coinGenerator.js");
+const { generatePigMesh } = await import("./pigGenerator.js");
+const { generateDogMesh } = await import("./dogGenerator.js");
+const { generateCowMesh } = await import("./cowGenerator.js");
+const { generateCatMesh } = await import("./catGenerator.js");
+const { generateChickenMesh } = await import("./chickenGenerator.js");
 const { generateAE86TruenoMesh } = await import("./ae86Generator.js");
 const { generateSedan90sMesh } = await import("./carGenerator.js");
 const { generatePropFighterMesh } = await import("./airplaneGenerator.js");
@@ -65,6 +70,11 @@ for (const [name, preset] of Object.entries(GEM_PRESETS)) {
 for (const [name, preset] of Object.entries(COIN_PRESETS)) {
   await exportMesh(generateCoinMesh(preset), `coin_${name}_voxel.glb`);
 }
+await exportMesh(generatePigMesh(), "pig_voxel.glb");
+await exportMesh(generateDogMesh(), "dog_voxel.glb");
+await exportMesh(generateCowMesh(), "cow_voxel.glb");
+await exportMesh(generateCatMesh(), "cat_voxel.glb");
+await exportMesh(generateChickenMesh(), "chicken_voxel.glb");
 await exportMesh(generateAE86TruenoMesh(), "ae86_trueno_voxel.glb");
 await exportMesh(generateSedan90sMesh(), "sedan_90s_voxel.glb");
 await exportMesh(generatePropFighterMesh(), "prop_fighter_voxel.glb");

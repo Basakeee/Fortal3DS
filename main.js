@@ -10,6 +10,11 @@ import { generateDemonBossMesh } from "./demonBossGenerator.js";
 import { generateGiantFishMesh } from "./giantFishGenerator.js";
 import { generateGemMesh, GEM_PRESETS } from "./gemGenerator.js";
 import { generateCoinMesh, COIN_PRESETS } from "./coinGenerator.js";
+import { generatePigMesh } from "./pigGenerator.js";
+import { generateDogMesh } from "./dogGenerator.js";
+import { generateCowMesh } from "./cowGenerator.js";
+import { generateCatMesh } from "./catGenerator.js";
+import { generateChickenMesh } from "./chickenGenerator.js";
 import { generatePropFighterMesh } from "./airplaneGenerator.js";
 import { generateBattleTankMesh } from "./tankGenerator.js";
 import { generateOakTreeMesh } from "./treeGenerator.js";
@@ -84,6 +89,16 @@ const PRESET_GROUPS = [
       generate: () => generateCoinMesh(COIN_PRESETS[key]),
       filename: `coin_${key}_voxel.glb`,
     })),
+  },
+  {
+    label: "สัตว์ฟาร์ม (Memory Farm)",
+    presets: [
+      { key: "pig", label: "Pig", generate: () => generatePigMesh(), filename: "pig_voxel.glb" },
+      { key: "dog", label: "Dog", generate: () => generateDogMesh(), filename: "dog_voxel.glb" },
+      { key: "chicken", label: "Chicken", generate: () => generateChickenMesh(), filename: "chicken_voxel.glb" },
+      { key: "cow", label: "Cow", generate: () => generateCowMesh(), filename: "cow_voxel.glb" },
+      { key: "cat", label: "Cat", generate: () => generateCatMesh(), filename: "cat_voxel.glb" },
+    ],
   },
 ];
 const ALL_PRESETS = PRESET_GROUPS.flatMap((g) => g.presets);
