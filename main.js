@@ -10,6 +10,7 @@ import { generateDemonBossMesh } from "./demonBossGenerator.js";
 import { generateGiantFishMesh } from "./giantFishGenerator.js";
 import { generateGemMesh, GEM_PRESETS } from "./gemGenerator.js";
 import { generateCoinMesh, COIN_PRESETS } from "./coinGenerator.js";
+import { generateGlassTileMesh } from "./glassTileGenerator.js";
 import { generatePigMesh } from "./pigGenerator.js";
 import { generateDogMesh } from "./dogGenerator.js";
 import { generateCowMesh } from "./cowGenerator.js";
@@ -97,6 +98,13 @@ const PRESET_GROUPS = [
       generate: () => generateCoinMesh(COIN_PRESETS[key]),
       filename: `coin_${key}_voxel.glb`,
     })),
+  },
+  {
+    label: "พื้นกระจก (Mirror Path)",
+    // Intact tile only — the animated break variant (shattering shards +
+    // baked clip) isn't exportable from this gallery, same as Dragon Ghast's
+    // animated tentacles: see glassTile.html for that export.
+    presets: [{ key: "glasstile", label: "Glass Tile", generate: () => generateGlassTileMesh(), filename: "glass_tile_voxel.glb" }],
   },
   {
     label: "สัตว์ฟาร์ม (Memory Farm)",

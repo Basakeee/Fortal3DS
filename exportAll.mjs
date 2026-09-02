@@ -21,6 +21,7 @@ const { generateDemonBossMesh } = await import("./demonBossGenerator.js");
 const { generateGiantFishMesh } = await import("./giantFishGenerator.js");
 const { generateGemMesh, GEM_PRESETS } = await import("./gemGenerator.js");
 const { generateCoinMesh, COIN_PRESETS } = await import("./coinGenerator.js");
+const { generateGlassTileMesh, assembleGlassTileBreakRig } = await import("./glassTileGenerator.js");
 const { generatePigMesh } = await import("./pigGenerator.js");
 const { generateDogMesh } = await import("./dogGenerator.js");
 const { generateCowMesh } = await import("./cowGenerator.js");
@@ -70,6 +71,11 @@ for (const [name, preset] of Object.entries(GEM_PRESETS)) {
 }
 for (const [name, preset] of Object.entries(COIN_PRESETS)) {
   await exportMesh(generateCoinMesh(preset), `coin_${name}_voxel.glb`);
+}
+await exportMesh(generateGlassTileMesh(), "glass_tile_voxel.glb");
+{
+  const { group, clip } = assembleGlassTileBreakRig();
+  await exportMesh(group, "glass_tile_break.glb", { animations: [clip] });
 }
 await exportMesh(generatePigMesh(), "pig_voxel.glb");
 await exportMesh(generateDogMesh(), "dog_voxel.glb");
