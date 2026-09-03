@@ -120,10 +120,12 @@ export const SERPENT_EYE = 0xff2233;
 export const SERPENT_PUPIL = 0x0a1a14;
 
 // Second, unrelated dragon (see dragonWingsBossGenerator.js for why this
-// isn't an edit of the Ghast-based dragon above): warm red/ember scales
-// instead of DRAGON_SCALES' green — eye/horn/teeth/mouth reuse the existing
-// DRAGON_* constants directly, still the same "dragon" family, just a
-// different body plan and paint job.
-export const DRAGON2_SCALES = [0xb3261e, 0xd9432f];
-export const DRAGON2_BELLY = 0xe8a06a;
+// isn't an edit of the Ghast-based dragon above) — eye/horn/teeth/mouth
+// reuse the existing DRAGON_* constants directly, still the same "dragon"
+// family, just a different body plan and paint job. บาส 2026-09-03: was
+// warm red/ember, changed to green per request — a brighter/more saturated
+// emerald than DRAGON_SCALES' muted forest green above, so the two dragons
+// still read as distinct in-game rather than near-identical.
+export const DRAGON2_SCALES = [0x1f7a4d, 0x2fa868];
+export const DRAGON2_BELLY = 0x9fe6b0;
 export const DRAGON2_WING = 0x2b1420;
