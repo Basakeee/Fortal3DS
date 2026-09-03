@@ -186,6 +186,17 @@ function rebuild() {
   scene.add(grid);
 }
 
+// Batch export: which preset keys are checked, independent of currentPreset
+// (the single-preview selection above) — a preset can be checked for batch
+// export without ever being clicked into the preview, and vice versa.
+const selectedKeys = new Set();
+const batchExportBtn = document.getElementById("batch-export");
+
+function updateBatchExportLabel() {
+  batchExportBtn.textContent = `Export selected (${selectedKeys.size})`;
+  batchExportBtn.disabled = selectedKeys.size === 0;
+}
+
 const groupsEl = document.getElementById("groups");
 for (const group of PRESET_GROUPS) {
   const labelEl = document.createElement("div");
@@ -196,6 +207,18 @@ for (const group of PRESET_GROUPS) {
   const rowEl = document.createElement("div");
   rowEl.className = "row";
   for (const preset of group.presets) {
+    const item = document.createElement("div");
+    item.className = "preset-item";
+
+    const checkbox = document.createElement("input");
+    checkbox.type = "checkbox";
+    checkbox.title = `เลือก ${preset.label} สำหรับ batch export`;
+    checkbox.addEventListener("change", () => {
+      if (checkbox.checked) selectedKeys.add(preset.key);
+      else selectedKeys.delete(preset.key);
+      updateBatchExportLabel();
+    });
+
     const btn = document.createElement("button");
     btn.textContent = preset.label;
     btn.className = preset === currentPreset ? "active" : "";
@@ -206,10 +229,14 @@ for (const group of PRESET_GROUPS) {
       rebuild();
       log(`Generated ${preset.label}`);
     });
-    rowEl.appendChild(btn);
+
+    item.appendChild(checkbox);
+    item.appendChild(btn);
+    rowEl.appendChild(item);
   }
   groupsEl.appendChild(rowEl);
 }
+updateBatchExportLabel();
 
 rebuild();
 
@@ -225,21 +252,75 @@ window.addEventListener("resize", () => {
   renderer.setSize(window.innerWidth, window.innerHeight);
 });
 
-document.getElementById("export").addEventListener("click", () => {
-  const exporter = new GLTFExporter();
-  exporter.parse(
-    mesh,
-    (result) => {
-      const blob = new Blob([result], { type: "application/octet-stream" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = currentPreset.filename;
-      a.click();
-      URL.revokeObjectURL(url);
-      log(`Exported ${currentPreset.filename} — check scale/vertex colors after importing into Unity (needs a vertex-color shader, e.g. URP/Lit).`);
-    },
-    (error) => log("Export failed: " + error),
-    { binary: true }
-  );
+// Shared by both the single "Export .glb (current)" button and the batch
+// export loop below — one exporter instance per call (GLTFExporter is
+// stateless/cheap to construct) so batch export can't have one preset's
+// in-flight parse() clobber another's.
+function exportMeshToFile(meshToExport, filename) {
+  return new Promise((resolve, reject) => {
+    const exporter = new GLTFExporter();
+    exporter.parse(
+      meshToExport,
+      (result) => {
+        const blob = new Blob([result], { type: "application/octet-stream" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = filename;
+        a.click();
+        URL.revokeObjectURL(url);
+        resolve();
+      },
+      (error) => reject(error),
+      { binary: true }
+    );
+  });
+}
+
+document.getElementById("export").addEventListener("click", async () => {
+  try {
+    await exportMeshToFile(mesh, currentPreset.filename);
+    log(`Exported ${currentPreset.filename} — check scale/vertex colors after importing into Unity (needs a vertex-color shader, e.g. URP/Lit).`);
+  } catch (error) {
+    log("Export failed: " + error);
+  }
+});
+
+// Batch export: generates + exports each CHECKED preset in turn, without
+// touching currentPreset/the live preview (a temporary mesh per preset,
+// disposed right after its own export) — so batch-exporting a pile of
+// presets never leaves the viewer showing some unrelated last-one-exported
+// mesh. Sequential with a delay between downloads (not Promise.all/a tight
+// loop) because Chrome's own "site wants to download multiple files" prompt
+// kicks in after a handful of rapid-fire downloads — spacing them out keeps
+// every one of N selected presets actually reaching disk instead of Chrome
+// silently dropping the ones past its burst limit.
+document.getElementById("batch-export").addEventListener("click", async () => {
+  const presets = ALL_PRESETS.filter((p) => selectedKeys.has(p.key));
+  if (presets.length === 0) return;
+
+  batchExportBtn.disabled = true;
+  let done = 0;
+  for (const preset of presets) {
+    log(`Exporting ${done + 1}/${presets.length}: ${preset.label}...`);
+    const tempMesh = preset.generate();
+    try {
+      await exportMeshToFile(tempMesh, preset.filename);
+    } catch (error) {
+      log(`Export failed on ${preset.label}: ${error}`);
+    } finally {
+      tempMesh.geometry.dispose();
+      tempMesh.material.dispose();
+    }
+    done++;
+    await new Promise((r) => setTimeout(r, 400));
+  }
+  log(`Batch export done — ${done}/${presets.length} file(s). If your browser blocked any download, allow "multiple downloads" for this site and try again.`);
+  updateBatchExportLabel();
+});
+
+document.getElementById("batch-clear").addEventListener("click", () => {
+  selectedKeys.clear();
+  for (const checkbox of groupsEl.querySelectorAll(".preset-item input[type=checkbox]")) checkbox.checked = false;
+  updateBatchExportLabel();
 });
