@@ -19,7 +19,7 @@ const { generateHumanMesh, HUMAN_PRESETS, generateFarmerMesh } = await import(".
 const { generateDragonGhastMesh, assembleDragonGhastAnimatedRig } = await import("./dragonGhastGenerator.js");
 const { generateDemonBossMesh } = await import("./demonBossGenerator.js");
 const { generateGiantFishMesh } = await import("./giantFishGenerator.js");
-const { generateJellyfishBossMesh } = await import("./jellyfishBossGenerator.js");
+const { generateJellyfishBossMesh, assembleJellyfishBossAnimatedRig } = await import("./jellyfishBossGenerator.js");
 const { generateCrystalGolemBossMesh } = await import("./crystalGolemBossGenerator.js");
 const { generateVoidWraithBossMesh } = await import("./voidWraithBossGenerator.js");
 const { generateMechaSentinelBossMesh } = await import("./mechaSentinelBossGenerator.js");
@@ -73,6 +73,10 @@ await exportMesh(generateDragonGhastMesh(), "dragon_ghast_boss_voxel.glb");
 await exportMesh(generateDemonBossMesh(), "demon_boss_voxel.glb");
 await exportMesh(generateGiantFishMesh(), "giant_fish_boss_voxel.glb");
 await exportMesh(generateJellyfishBossMesh(), "jellyfish_boss_voxel.glb");
+{
+  const { group, clip } = assembleJellyfishBossAnimatedRig();
+  await exportMesh(group, "jellyfish_boss_animated.glb", { animations: [clip] });
+}
 await exportMesh(generateCrystalGolemBossMesh(), "crystal_golem_boss_voxel.glb");
 await exportMesh(generateVoidWraithBossMesh(), "void_wraith_boss_voxel.glb");
 await exportMesh(generateMechaSentinelBossMesh(), "mecha_sentinel_boss_voxel.glb");
