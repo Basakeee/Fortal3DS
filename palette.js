@@ -91,3 +91,39 @@ export const DRAGON_PUPIL = 0x1a1a1a;
 export const DRAGON_HORN = 0xe8dcc5;
 export const DRAGON_TEETH = 0xf2f2f2;
 export const DRAGON_MOUTH = 0x2b0d0d;
+
+// บาส 2026-09-03: 6 more Boss Slayer creatures, same "own art bible per
+// creature" idiom as the DRAGON_* set above. Each new file's own header
+// comment explains which existing preset's body plan it reuses/reskins.
+export const JELLYFISH_SKIN = [0x6a1b9a, 0x8e24aa]; // base + lighter accent, checkerboard like DRAGON_SCALES
+export const JELLYFISH_BELLY = 0x4a148c;
+export const JELLYFISH_EYE = 0xff2233;
+export const JELLYFISH_PUPIL = 0x7a0d1a;
+export const JELLYFISH_TENTACLE_A = 0x4a148c;
+export const JELLYFISH_TENTACLE_B = 0x2d0a42;
+
+export const CRYSTAL_ROCK = [0x2f8f94, 0x1c6468]; // base + darker accent
+export const CRYSTAL_SHARD = 0x35d9e0;
+export const CRYSTAL_EYE = 0x9df7fb;
+
+export const WRAITH_BODY = 0x241b3d;
+export const WRAITH_BODY_DARK = 0x140f24;
+export const WRAITH_GLOW = 0x8f6bff;
+
+export const MECHA_PLATING = [0x555b66, 0x454b54]; // checkerboard panel seams, same technique as DRAGON_SCALES
+export const MECHA_VISOR = 0xff8a1f;
+
+export const SERPENT_SCALES = [0x0f8a6b, 0x139874];
+export const SERPENT_BELLY = 0x0a5647;
+export const SERPENT_FIN = 0x35e0b0;
+export const SERPENT_EYE = 0xff2233;
+export const SERPENT_PUPIL = 0x0a1a14;
+
+// Second, unrelated dragon (see dragonWingsBossGenerator.js for why this
+// isn't an edit of the Ghast-based dragon above): warm red/ember scales
+// instead of DRAGON_SCALES' green — eye/horn/teeth/mouth reuse the existing
+// DRAGON_* constants directly, still the same "dragon" family, just a
+// different body plan and paint job.
+export const DRAGON2_SCALES = [0xb3261e, 0xd9432f];
+export const DRAGON2_BELLY = 0xe8a06a;
+export const DRAGON2_WING = 0x2b1420;

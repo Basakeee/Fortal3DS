@@ -8,6 +8,12 @@ import { generateHumanMesh, HUMAN_PRESETS, generateFarmerMesh } from "./humanGen
 import { generateDragonGhastMesh } from "./dragonGhastGenerator.js";
 import { generateDemonBossMesh } from "./demonBossGenerator.js";
 import { generateGiantFishMesh } from "./giantFishGenerator.js";
+import { generateJellyfishBossMesh } from "./jellyfishBossGenerator.js";
+import { generateCrystalGolemBossMesh } from "./crystalGolemBossGenerator.js";
+import { generateVoidWraithBossMesh } from "./voidWraithBossGenerator.js";
+import { generateMechaSentinelBossMesh } from "./mechaSentinelBossGenerator.js";
+import { generateStormSerpentBossMesh } from "./stormSerpentBossGenerator.js";
+import { generateDragonWingsBossMesh } from "./dragonWingsBossGenerator.js";
 import { generateGemMesh, GEM_PRESETS } from "./gemGenerator.js";
 import { generateCoinMesh, COIN_PRESETS } from "./coinGenerator.js";
 import { generateGlassTileMesh } from "./glassTileGenerator.js";
@@ -79,6 +85,20 @@ const PRESET_GROUPS = [
       { key: "dragon", label: "Dragon Ghast Boss", generate: () => generateDragonGhastMesh(), filename: "dragon_ghast_boss_voxel.glb" },
       { key: "demon", label: "Demon Boss", generate: () => generateDemonBossMesh(), filename: "demon_boss_voxel.glb" },
       { key: "fish", label: "Giant Fish Boss", generate: () => generateGiantFishMesh(), filename: "giant_fish_boss_voxel.glb" },
+      // บาส 2026-09-03: 6 more BossFight bosses, same single-mesh vertex-color
+      // export as the 3 above (see each generator's own file header for which
+      // existing boss's body plan it reuses/reskins).
+      { key: "jellyfish", label: "Jellyfish Boss", generate: () => generateJellyfishBossMesh(), filename: "jellyfish_boss_voxel.glb" },
+      { key: "crystalgolem", label: "Crystal Golem Boss", generate: () => generateCrystalGolemBossMesh(), filename: "crystal_golem_boss_voxel.glb" },
+      { key: "voidwraith", label: "Void Wraith Boss", generate: () => generateVoidWraithBossMesh(), filename: "void_wraith_boss_voxel.glb" },
+      { key: "mechasentinel", label: "Mecha Sentinel Boss", generate: () => generateMechaSentinelBossMesh(), filename: "mecha_sentinel_boss_voxel.glb" },
+      { key: "stormserpent", label: "Storm Serpent Boss", generate: () => generateStormSerpentBossMesh(), filename: "storm_serpent_boss_voxel.glb" },
+      {
+        key: "dragonwings",
+        label: "Dragon Wings Boss",
+        generate: () => generateDragonWingsBossMesh(),
+        filename: "dragon_wings_boss_voxel.glb",
+      },
     ],
   },
   {
