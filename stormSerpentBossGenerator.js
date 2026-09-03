@@ -11,7 +11,10 @@ import { pushVoxel, voxelsToMesh } from "./voxelKit.js";
 export const STORM_SERPENT_BOSS_DEFAULTS = {
   bodyWidth: 5,
   bodyHeight: 5,
-  bodyLength: 13,
+  // บาส 2026-09-03: 13 -> 22 ("อยากให้ตัวยาวกว่านี้") — heightMeters below is
+  // normalized against bodyHeight + tailFinExtra*2, NOT bodyLength, so this
+  // makes the serpent longer without also scaling it taller/thicker.
+  bodyLength: 22,
   tailFinExtra: 3,
   tailFinLength: 3,
   crestHeight: 3,
